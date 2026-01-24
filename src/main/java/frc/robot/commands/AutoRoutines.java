@@ -14,6 +14,7 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.Feeder;
@@ -69,6 +70,10 @@ public final class AutoRoutines {
         autoChooser.addRoutine("Outpost and Depot", this::outpostAndDepotRoutine);
         SmartDashboard.putData("Auto Chooser", autoChooser);
         RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
+    }
+
+    public Command getSelectedCommand() {
+        return autoChooser.selectedCommand();
     }
 
     private AutoRoutine outpostAndDepotRoutine() {

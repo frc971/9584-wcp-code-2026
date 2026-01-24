@@ -5,17 +5,25 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Optional;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
+import frc.robot.generated.TunerConstants;
 import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
@@ -27,6 +35,8 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
+import frc.sim.MapleSimSwerveDrivetrain;
+import frc.sim.SimSwerveConstants;
 import frc.util.SwerveTelemetry;
 
 /**
@@ -36,6 +46,8 @@ import frc.util.SwerveTelemetry;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+    private static final double kSimLoopPeriodSeconds = 0.002;
+
     private final Swerve swerve = new Swerve();
     private final Intake intake = new Intake();
     private final Floor floor = new Floor();
@@ -48,6 +60,10 @@ public class RobotContainer {
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
     
     private final CommandXboxController driver = new CommandXboxController(0);
+
+    private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain;
+    private Notifier mapleSimNotifier;
+
 
     private final AutoRoutines autoRoutines = new AutoRoutines(
         swerve,
@@ -73,9 +89,58 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        configureBindings();
-        autoRoutines.configure();
+
+        if (RobotBase.isReal()){
+            configureBindings();
+        }
+        else{
+            configureSimBindings();
+        }
+
+        autoRoutines.configure(); //auto chooser setup
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+    }
+
+
+    //simulation requires this
+    private void configureSimBindings() {
+        configureBindings();
+
+        if (mapleSimSwerveDrivetrain != null) {
+            return;
+        }
+
+        mapleSimSwerveDrivetrain = new MapleSimSwerveDrivetrain(
+            Seconds.of(kSimLoopPeriodSeconds),
+            SimSwerveConstants.ROBOT_MASS,
+            SimSwerveConstants.BUMPER_LENGTH_X,
+            SimSwerveConstants.BUMPER_LENGTH_Y,
+            SimSwerveConstants.DRIVE_MOTOR_WHEEL,
+            SimSwerveConstants.STEER_MOTOR_WHEEL,
+            SimSwerveConstants.WHEEL_COF,
+            swerve.getModuleLocations(),
+            swerve.getPigeon2(),
+            swerve.getModules(),
+            simModuleConstants()
+        );
+
+        mapleSimNotifier = new Notifier(mapleSimSwerveDrivetrain::update);
+        mapleSimNotifier.setName("MapleSimUpdater");
+        mapleSimNotifier.startPeriodic(kSimLoopPeriodSeconds);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[] simModuleConstants() {
+        return (SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[])
+            MapleSimSwerveDrivetrain.regulateModuleConstantsForSimulation(
+                (SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>[])
+                    new SwerveModuleConstants[] {
+                        TunerConstants.FrontLeft,
+                        TunerConstants.FrontRight,
+                        TunerConstants.BackLeft,
+                        TunerConstants.BackRight
+                    }
+            );
     }
     
     /**
@@ -133,4 +198,22 @@ public class RobotContainer {
         })
         .ignoringDisable(true);
     }
+
+    public Command getAutonomousCommand() {
+        Command selected = autoRoutines.getSelectedCommand();
+        if (selected == null) {
+            DriverStation.reportWarning("No autonomous command selected", false);
+            return Commands.none();
+        }
+        return selected;
+    }
+
+    public void teleopInit() {
+        // Place teleop initialization hooks here when additional subsystems are added.
+    }
+
+    public void autonomousInit() {
+        // Place autonomous initialization hooks here when additional subsystems are added.
+    }
+
 }

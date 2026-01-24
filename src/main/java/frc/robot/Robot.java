@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 /**
@@ -17,7 +18,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
  * this project, you must also update the Main.java file in the project.
  */
 public class Robot extends TimedRobot {
-    private final RobotContainer m_robotContainer;
+    private final RobotContainer robotContainer;
+    private Command autonomousCommand;
     
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -26,7 +28,7 @@ public class Robot extends TimedRobot {
     public Robot() {
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
-        m_robotContainer = new RobotContainer();
+        robotContainer = new RobotContainer();
         SmartDashboard.putData(CommandScheduler.getInstance());
         RobotController.setBrownoutVoltage(Volts.of(6.1));
     }
@@ -46,4 +48,51 @@ public class Robot extends TimedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
     }
+
+    @Override
+    public void disabledInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    //TODO: need to implement with the shift sections
+    @Override
+    public void disabledPeriodic() {}
+
+    @Override
+    public void autonomousInit() {
+        autonomousCommand = robotContainer.getAutonomousCommand();
+        if (autonomousCommand != null) {
+            CommandScheduler.getInstance().schedule(autonomousCommand);
+        }
+        robotContainer.autonomousInit();
+    }
+
+    //TODO: might don't need this
+    @Override
+    public void autonomousPeriodic() {}
+
+    @Override
+    public void teleopInit() {
+        if (autonomousCommand != null) {
+            CommandScheduler.getInstance().cancel(autonomousCommand);
+        }
+        robotContainer.teleopInit();
+    }
+
+    //TODO: todo
+    @Override
+    public void teleopPeriodic() {}
+
+    @Override
+    public void testInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    // tests? don't need to complete for now
+    @Override
+    public void testPeriodic() {}
+
+    // could be useful for sim
+    @Override
+    public void simulationPeriodic() {}
 }
