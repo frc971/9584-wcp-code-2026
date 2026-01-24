@@ -17,22 +17,9 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "path",
           "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Intake Fuel"
-                }
-              },
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "MiddleLeftToNeutral"
-                }
-              }
-            ]
+            "pathName": "MiddleLeftToNeutral"
           }
         },
         {
