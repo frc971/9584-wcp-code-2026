@@ -1,0 +1,70 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 3.5789916963226576,
+        "y": 2.507
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 4.578991696322656,
+        "y": 2.507
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.967532621589562,
+        "y": 2.389
+      },
+      "prevControl": {
+        "x": 5.49515118217607,
+        "y": 2.8613814394134924
+      },
+      "nextControl": {
+        "x": 6.439914061003055,
+        "y": 1.9166185605865071
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.614,
+        "y": 0.775
+      },
+      "prevControl": {
+        "x": 6.614,
+        "y": 0.7750000000000004
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [],
+  "globalConstraints": {
+    "maxVelocity": 3.85,
+    "maxAcceleration": 3.125,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 960.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 90.0
+  },
+  "reversed": false,
+  "folder": "Right Neutral Zone Paths",
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": true
+}

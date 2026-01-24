@@ -1,0 +1,56 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddleStraightLeft"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartMiddleToNeutralLeft"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake Fuel"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "MiddleLeftToNeutral"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "NeutralLeftToRightStaging"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightStagingToClimb"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
