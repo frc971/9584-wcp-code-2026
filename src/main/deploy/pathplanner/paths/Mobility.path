@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 3.542,
-        "y": 3.752
+        "x": 3.5,
+        "y": 4.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.4352276510882507,
-        "y": 3.7295507754171924
+        "x": 3.2102203930943825,
+        "y": 4.0060923771309085
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.559,
-        "y": 3.752
+        "x": 2.812638934100116,
+        "y": 4.0
       },
       "prevControl": {
-        "x": 2.436999435003286,
-        "y": 3.7529960591904565
+        "x": 3.0682948868828355,
+        "y": 4.003114592795971
       },
       "nextControl": null,
       "isLocked": false,
@@ -31,24 +31,31 @@
   "rotationTargets": [],
   "constraintZones": [],
   "pointTowardsZones": [],
-  "eventMarkers": [],
+  "eventMarkers": [
+    {
+      "name": "Eject Coral",
+      "waypointRelativePos": 1.0,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
   "globalConstraints": {
-    "maxVelocity": 3.0,
-    "maxAcceleration": 3.0,
-    "maxAngularVelocity": 540.0,
-    "maxAngularAcceleration": 720.0,
+    "maxVelocity": 3.85,
+    "maxAcceleration": 3.125,
+    "maxAngularVelocity": 720.0,
+    "maxAngularAcceleration": 960.0,
     "nominalVoltage": 12.0,
     "unlimited": false
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 180.0
   },
   "reversed": false,
   "folder": "Straight Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
