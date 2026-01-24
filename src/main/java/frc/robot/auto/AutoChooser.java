@@ -2,20 +2,20 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.commands;
+package frc.robot.auto;
 
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$0;
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$1;
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$2;
 import static frc.robot.generated.ChoreoTraj.OutpostAndDepotTrajectory$3;
 
-import choreo.auto.AutoChooser;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.commands.SubsystemCommands;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -25,7 +25,7 @@ import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
 
-public final class AutoRoutines {
+public final class AutoChooser {
     private final Swerve swerve;
     private final Intake intake;
     private final Floor floor;
@@ -38,9 +38,9 @@ public final class AutoRoutines {
     private final SubsystemCommands subsystemCommands;
 
     private final AutoFactory autoFactory;
-    private final AutoChooser autoChooser;
+    private final choreo.auto.AutoChooser routineChooser;
 
-    public AutoRoutines(
+    public AutoChooser(
         Swerve swerve,
         Intake intake,
         Floor floor,
@@ -62,13 +62,13 @@ public final class AutoRoutines {
         this.subsystemCommands = new SubsystemCommands(swerve, intake, floor, feeder, shooter, hood, hanger);
 
         this.autoFactory = swerve.createAutoFactory();
-        this.autoChooser = new AutoChooser();
+        this.routineChooser = new choreo.auto.AutoChooser();
     }
 
     public void configure() {
-        autoChooser.addRoutine("Outpost and Depot", this::outpostAndDepotRoutine);
-        SmartDashboard.putData("Auto Chooser", autoChooser);
-        RobotModeTriggers.autonomous().whileTrue(autoChooser.selectedCommandScheduler());
+        routineChooser.addRoutine("Outpost and Depot", this::outpostAndDepotRoutine);
+        SmartDashboard.putData("Auto Chooser", routineChooser);
+        RobotModeTriggers.autonomous().whileTrue(routineChooser.selectedCommandScheduler());
     }
 
     private AutoRoutine outpostAndDepotRoutine() {

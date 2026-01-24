@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
-import frc.robot.commands.AutoRoutines;
+import frc.robot.auto.AutoChooser;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
 import frc.robot.subsystems.Feeder;
@@ -49,7 +49,7 @@ public class RobotContainer {
     
     private final CommandXboxController driver = new CommandXboxController(0);
 
-    private final AutoRoutines autoRoutines = new AutoRoutines(
+    private final AutoChooser autoChooser = new AutoChooser(
         swerve,
         intake,
         floor,
@@ -74,7 +74,7 @@ public class RobotContainer {
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         configureBindings();
-        autoRoutines.configure();
+        autoChooser.configure();
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
     }
     
