@@ -8,10 +8,21 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Optional;
 
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -19,6 +30,7 @@ import frc.robot.Constants.Driving;
 import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -46,9 +58,25 @@ public class RobotContainer {
     private final Limelight limelight = new Limelight("limelight");
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
+
+    private final Swerve drivetrain = new Swerve();
     
     private final CommandXboxController driver = new CommandXboxController(0);
-    
+    private final CommandJoystick simController = new CommandJoystick(2);
+
+    private final SwerveRequest.FieldCentric fieldCentricDrive = new SwerveRequest.FieldCentric()
+        .withDeadband(Constants.Driving.kMaxSpeed.in(MetersPerSecond) * Constants.SimConstants.controllerDeadbandPercentage)
+        .withRotationalDeadband(Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond) * Constants.SimConstants.controllerDeadbandPercentage);
+
+    private final SwerveRequest.RobotCentric robotCentricDrive = new SwerveRequest.RobotCentric();
+
+    private final SlewRateLimiter fieldXSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
+    private final SlewRateLimiter fieldYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
+    private final SlewRateLimiter fieldRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
+    private final SlewRateLimiter robotXSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
+    private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
+    private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
+
     private final AutoRoutines autoRoutines = new AutoRoutines(
         swerve,
         intake,
@@ -73,7 +101,12 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        configureBindings();
+        if (RobotBase.isReal()){
+            configureBindings();
+        }
+        else{
+            configureSimBindings();
+        }
         autoRoutines.configure();
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
     }
@@ -104,6 +137,50 @@ public class RobotContainer {
         driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
     }
 
+    private void configureSimBindings() {
+        drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(() -> {
+                if (!DriverStation.isJoystickConnected(2)) {
+                    return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
+                }
+
+                double exponentVelocity =
+                    Constants.SimConstants.controllerVelocityCurveExponent;
+                double exponentRotation =
+                    Constants.SimConstants.controllerRotationCurveExponent;
+
+                if (!simController.button(1).getAsBoolean()) {
+                    double fieldX = fieldXSlewFilter.calculate(
+                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                    double fieldY = fieldYSlewFilter.calculate(
+                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                    double fieldRotate = fieldRotateSlewFilter.calculate(
+                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                    return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
+                } else {
+                    double robotX = robotXSlewFilter.calculate(
+                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                    double robotY = robotYSlewFilter.calculate(
+                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                    double robotRotate = robotRotateSlewFilter.calculate(
+                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
+                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                    return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
+                }
+            }));
+        /* 
+        simController.button(2).onTrue(intake.FuelIntakePressed());
+        simController.button(2).onFalse(intake.FuelIntakeReleased());
+        simController.button(3).onTrue(intake.UnfoldIntake());
+        simController.button(4).onTrue(intake.FoldIntake());
+        */
+    }
+
     private void configureManualDriveBindings() {
         final ManualDriveCommand manualDriveCommand = new ManualDriveCommand(
             swerve, 
@@ -132,5 +209,9 @@ public class RobotContainer {
             });
         })
         .ignoringDisable(true);
+    }
+
+    public static double ExponentialConvert(double controllerValue, double exponent) {
+        return Math.copySign(Math.pow(Math.abs(controllerValue), exponent), controllerValue);
     }
 }
