@@ -17,10 +17,18 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.utils.simulation.SimSwerveConstants;
+
+import org.littletonrobotics.junction.Logger;
+
+import static edu.wpi.first.units.Units.Seconds;
 
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -29,6 +37,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    private static final double kSimLoopPeriod = 0.005;
+    private Notifier m_simNotifier = null;
+    private static double m_lastSimTime;
 
     /** Swerve request to apply during field-centric path following */
     private final SwerveRequest.ApplyFieldSpeeds pathFieldSpeedsRequest = new SwerveRequest.ApplyFieldSpeeds();
@@ -47,6 +59,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             TunerConstants.BackLeft, 
             TunerConstants.BackRight
         );
+
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
     }
 
     /**
@@ -136,6 +152,60 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        if (mapleSimSwerveDrivetrain != null) {
+            Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
+            super.resetPose(simPose);
+            Logger.recordOutput("Drive/Pose", simPose);
+          } else {
+            Logger.recordOutput("Drive/Pose", getState().Pose);
+          }
+      
+        Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
+        Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
+        Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
+        Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
+    }
+
+    private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
+
+    private void startSimThread() {
+        mapleSimSwerveDrivetrain =
+        new MapleSimSwerveDrivetrain(
+            Seconds.of(kSimLoopPeriod),
+            SimSwerveConstants.ROBOT_MASS,
+            SimSwerveConstants.BUMPER_LENGTH_X,
+            SimSwerveConstants.BUMPER_LENGTH_Y,
+            SimSwerveConstants.DRIVE_MOTOR_WHEEL,
+            SimSwerveConstants.STEER_MOTOR_WHEEL,
+            SimSwerveConstants.WHEEL_COF,
+            getModuleLocations(),
+            getPigeon2(),
+            getModules(),
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight);
+    /* Run simulation at a faster rate so PID gains behave more reasonably */
+    m_simNotifier = new Notifier(mapleSimSwerveDrivetrain::update);
+    m_simNotifier.startPeriodic(kSimLoopPeriod);
+    
+    // Initialize simulation pose to inside the field on black line for red alliance
+    double redAllianceInitialSimX = 12.956;
+    double redAllianceInitialSimY = 5.936;
+
+    Pose2d initialSimPose = new Pose2d(redAllianceInitialSimX, redAllianceInitialSimY, new Rotation2d(0));
+    mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
+    }
+
+    @Override
+    public void resetPose(Pose2d pose) {
+        if (this.mapleSimSwerveDrivetrain != null) {
+        mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(pose);
+        // Push one sim update instead of blocking the main loop for 0.1s
+        mapleSimSwerveDrivetrain.update();
+        }
+        super.resetPose(pose);
     }
 
     /**
