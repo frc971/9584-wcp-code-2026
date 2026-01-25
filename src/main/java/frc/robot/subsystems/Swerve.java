@@ -147,7 +147,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                         : kBlueAlliancePerspectiveRotation
                 );
                 if (!m_hasAppliedOperatorPerspective) {
-                    seedFieldCentric();
+                    if (!Utils.isSimulation()){
+                        seedFieldCentric();
+                    }
                 }
                 m_hasAppliedOperatorPerspective = true;
             });
@@ -196,6 +198,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     Pose2d initialSimPose = new Pose2d(redAllianceInitialSimX, redAllianceInitialSimY, new Rotation2d(0));
     mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
+    super.resetPose(initialSimPose);
     }
 
     @Override
