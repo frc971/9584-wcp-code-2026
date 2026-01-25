@@ -48,7 +48,7 @@ public class RobotContainer {
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
     
     private final CommandXboxController driver = new CommandXboxController(0);
-
+    
     private final AutoRoutines autoRoutines = new AutoRoutines(
         swerve,
         intake,
