@@ -75,8 +75,12 @@ public class RobotContainer {
     }
 
     private void configureAutonomous() {
-        //NamedCommands.registerCommand("Intake Fuel", autoCommands.AutoIntakeFuel());
-
+        NamedCommands.registerCommand("Intake", intake.intakeCommand());
+        NamedCommands.registerCommand("Manual Shoot", subsystemCommands.shootManually());
+        NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
+        NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGING));
+        NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGING));
+        
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
     }
