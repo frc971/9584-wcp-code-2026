@@ -17,9 +17,22 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "MiddleRightToNeutral"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "MiddleRightToNeutral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              }
+            ]
           }
         },
         {
