@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddleStraightRight"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartMiddleToNeutralRight"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddleRightToNeutral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "NeutralRightToLeftStaging"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftStagingToClimb"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
