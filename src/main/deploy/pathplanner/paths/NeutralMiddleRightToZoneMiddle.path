@@ -17,15 +17,15 @@
     {
       "anchor": {
         "x": 6.183,
-        "y": 2.4265005931198096
+        "y": 2.8801717557251916
       },
       "prevControl": {
         "x": 7.268814372847959,
-        "y": 2.4265005931198096
+        "y": 2.8801717557251916
       },
       "nextControl": {
         "x": 4.523614817656044,
-        "y": 2.4265005931198096
+        "y": 2.8801717557251916
       },
       "isLocked": false,
       "linkedName": null
@@ -42,6 +42,22 @@
       "nextControl": {
         "x": 2.2153314237020707,
         "y": 2.4265005931198096
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 1.97951562752323,
+        "y": 3.1372933418642175
+      },
+      "prevControl": {
+        "x": 2.0974235256126503,
+        "y": 2.7818969674920133
+      },
+      "nextControl": {
+        "x": 1.8616077294338096,
+        "y": 3.4926897162364217
       },
       "isLocked": false,
       "linkedName": null
@@ -82,7 +98,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Left Neutral Zone Paths",
   "idealStartingState": {
     "velocity": 0,
     "rotation": -90.0
