@@ -20,6 +20,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
@@ -27,7 +29,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
-import frc.robot.commands.AutoRoutines;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
 import frc.robot.generated.TunerConstants;
@@ -40,6 +41,8 @@ import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
 import frc.util.SwerveTelemetry;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -98,6 +101,8 @@ public class RobotContainer {
         () -> -driver.getLeftY(),
         () -> -driver.getLeftX()
     );
+
+    private SendableChooser<Command> autoChooser;
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -107,8 +112,24 @@ public class RobotContainer {
         else{
             configureSimBindings();
         }
-        autoRoutines.configure();
+        configureAutonomous();
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+    }
+
+    private void configureAutonomous() {
+        //NamedCommands.registerCommand("Intake Fuel", autoCommands.AutoIntakeFuel());
+
+        autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
+        SmartDashboard.putData("Auto Mode", autoChooser);
+    }
+
+    public Command getAutonomousCommand() {
+        Command selected = autoChooser.getSelected();
+        if (selected == null) {
+            DriverStation.reportWarning("No autonomous command selected", false);
+            return Commands.none();
+        }
+        return selected;
     }
     
     /**
@@ -214,4 +235,5 @@ public class RobotContainer {
     public static double ExponentialConvert(double controllerValue, double exponent) {
         return Math.copySign(Math.pow(Math.abs(controllerValue), exponent), controllerValue);
     }
+    public void autonomousInit() {}
 }
