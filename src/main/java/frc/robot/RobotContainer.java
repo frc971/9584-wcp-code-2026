@@ -60,8 +60,6 @@ public class RobotContainer {
     private final Limelight limelight = new Limelight("limelight");
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
-
-    private final Swerve drivetrain = new Swerve();
     
     private final CommandXboxController driver = new CommandXboxController(0);
     private final CommandJoystick simController = new CommandJoystick(2);
@@ -148,8 +146,8 @@ public class RobotContainer {
     }
 
     private void configureSimBindings() {
-        drivetrain.setDefaultCommand(
-            drivetrain.applyRequest(() -> {
+        swerve.setDefaultCommand(
+            swerve.applyRequest(() -> {
                 if (!DriverStation.isJoystickConnected(2)) {
                     return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
                 }
