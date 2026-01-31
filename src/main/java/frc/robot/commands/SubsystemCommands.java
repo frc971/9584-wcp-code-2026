@@ -70,8 +70,10 @@ public final class SubsystemCommands {
     }
 
     public Command aimAndShoot() {
+        System.out.println("=======Aim and Shoot Command");
         final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
+        System.out.println("Aiming");
         return Commands.parallel(
             aimAndDriveCommand,
             Commands.waitSeconds(0.25)

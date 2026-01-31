@@ -85,7 +85,15 @@ public class Feeder extends SubsystemBase {
     }
 
     public Command feedCommand() {
-        return startEnd(() -> set(Speed.FEED), () -> setPercentOutput(0));
+        return startEnd(
+            () -> {
+                System.out.println("feeding fuel to shooter");
+                set(Speed.FEED);
+                }, 
+            () -> {
+                System.out.println("stopping feed");
+                setPercentOutput(0);
+                });
     }
 
     @Override

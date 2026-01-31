@@ -109,7 +109,12 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command positionCommand(Position position) {
-        return runOnce(() -> set(position))
+        System.out.println("====Hanger Position Command");
+        return runOnce(() -> 
+            {
+                System.out.println("Setting hanger position to " + position);
+                set(position);
+            })
             .andThen(Commands.waitUntil(this::isExtensionWithinTolerance));
     }
 
