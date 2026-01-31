@@ -3,6 +3,10 @@ package frc.robot.subsystems;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import choreo.trajectory.SwerveSample;
@@ -15,6 +19,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -54,10 +59,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             0,
             VecBuilder.fill(0.1, 0.1, 0.1),
             VecBuilder.fill(0.1, 0.1, 0.1),
-            TunerConstants.FrontLeft, 
-            TunerConstants.FrontRight, 
-            TunerConstants.BackLeft, 
-            TunerConstants.BackRight
+            getSwerveModuleConstants()
         );
 
         if (Utils.isSimulation()) {
@@ -65,6 +67,25 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         }
         configureAutoBuilder();
     }
+
+    // Get swerve module constants as an array of constants
+    private static SwerveModuleConstants<?, ?, ?>[] getSwerveModuleConstants() {
+    SwerveModuleConstants<?, ?, ?>[] modules =
+        new SwerveModuleConstants[] {
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight
+        };
+    
+    // Regulate swerve module constants for simulation if in sim
+    if (Utils.isSimulation()) {
+        return MapleSimSwerveDrivetrain
+            .regulateModuleConstantsForSimulation(modules);
+    }
+
+    return modules;
+}
 
     private void configureAutoBuilder() {
     try {
@@ -132,7 +153,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
-            super.resetPose(simPose);
+            //mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(simPose);
             Logger.recordOutput("Drive/Pose", simPose);
           } else {
             Logger.recordOutput("Drive/Pose", getState().Pose);
