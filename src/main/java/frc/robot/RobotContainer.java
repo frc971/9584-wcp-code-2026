@@ -26,7 +26,7 @@ import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
-import frc.robot.subsystems.Limelight;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
 import frc.util.SwerveTelemetry;
@@ -47,7 +47,8 @@ public class RobotContainer {
     private final Shooter shooter = new Shooter();
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
-    private final Limelight limelight = new Limelight("limelight");
+    // Add all cameras here: e.g.: new Vision("limelight-front", "limelight-back", ...)
+    private final Vision limelight = new Vision("limelight");
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
     
@@ -133,18 +134,22 @@ public class RobotContainer {
 
     private Command updateVisionCommand() {
         return limelight.run(() -> {
-            final Pose2d currentRobotPose = swerve.getState().Pose;
-            final Optional<Limelight.Measurement> measurement = limelight.getMeasurement(currentRobotPose);
-            measurement.ifPresent(m -> {
-                swerve.addVisionMeasurement(
-                    m.poseEstimate.pose, 
-                    m.poseEstimate.timestampSeconds,
-                    m.standardDeviations
-                );
-            });
-        })
-        .ignoringDisable(true);
-    }
+                    // Get current pose from CTRE Swerve
+                    final Pose2d currentRobotPose = swerve.getState().Pose;
 
+                    // Get all valid camera updates
+                    var measurements = limelight.getMeasurements(currentRobotPose);
+
+                    // Apply each update to the CTRE Pose Estimator
+                    for (Vision.Measurement m : measurements) {
+                        swerve.addVisionMeasurement(
+                                m.poseEstimate.pose,
+                                m.poseEstimate.timestampSeconds,
+                                m.stdDevs
+                        );
+                    }
+                })
+                .ignoringDisable(true); // Keep tracking while disabled so auto starts aligned!
+    }
     public void autonomousInit() {}
 }
