@@ -16,19 +16,40 @@
     },
     {
       "anchor": {
-        "x": 1.525,
-        "y": 3.7
+        "x": 3.008754448398578,
+        "y": 2.5771293001186244
       },
       "prevControl": {
-        "x": 1.5377284903799036,
-        "y": 2.5000675079269463
+        "x": 3.5152185289678175,
+        "y": 1.729352469600548
+      },
+      "nextControl": {
+        "x": 2.513831553973905,
+        "y": 3.405587188612101
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.498,
+        "y": 4.035
+      },
+      "prevControl": {
+        "x": 2.8688849347568213,
+        "y": 2.781553973902728
       },
       "nextControl": null,
       "isLocked": false,
       "linkedName": null
     }
   ],
-  "rotationTargets": [],
+  "rotationTargets": [
+    {
+      "waypointRelativePos": 1,
+      "rotationDegrees": 180.0
+    }
+  ],
   "constraintZones": [],
   "pointTowardsZones": [],
   "eventMarkers": [],
@@ -42,7 +63,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "reversed": false,
   "folder": "Middle Neutral Zone Paths",
