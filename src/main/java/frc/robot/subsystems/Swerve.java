@@ -46,7 +46,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
-    private static final double kSimLoopPeriod = 0.0005;
+    private static final double kSimLoopPeriod = 0.005;
     private Notifier m_simNotifier = null;
     private static double m_lastSimTime;
 
@@ -153,7 +153,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
-            //mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(simPose);
+            super.resetPose(simPose);
             Logger.recordOutput("Drive/Pose", simPose);
           } else {
             Logger.recordOutput("Drive/Pose", getState().Pose);
