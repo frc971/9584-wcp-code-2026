@@ -21,11 +21,13 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.sim.SimDeviceRegistrar;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
@@ -62,7 +64,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             getSwerveModuleConstants()
         );
 
-        if (Utils.isSimulation()) {
+        if (RobotBase.isSimulation()) {
+            registerSimDevices();
             startSimThread();
         }
         configureAutoBuilder();
@@ -79,7 +82,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         };
     
     // Regulate swerve module constants for simulation if in sim
-    if (Utils.isSimulation()) {
+    if (RobotBase.isSimulation()) {
         return MapleSimSwerveDrivetrain
             .regulateModuleConstantsForSimulation(modules);
     }
@@ -166,6 +169,13 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     }
 
     private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
+
+    private void registerSimDevices() {
+        for (var module : getModules()) {
+            SimDeviceRegistrar.registerTalonFX(module.getDriveMotor());
+            SimDeviceRegistrar.registerTalonFX(module.getSteerMotor());
+        }
+    }
 
     private void startSimThread() {
         mapleSimSwerveDrivetrain =
