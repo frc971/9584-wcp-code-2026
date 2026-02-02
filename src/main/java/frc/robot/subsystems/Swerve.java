@@ -188,11 +188,11 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     m_simNotifier = new Notifier(mapleSimSwerveDrivetrain::update);
     m_simNotifier.startPeriodic(kSimLoopPeriod);
     
-    // Initialize simulation pose to inside the field on black line for red alliance
-    double redAllianceInitialSimX = 5.956;
-    double redAllianceInitialSimY = 5.936;
+    // Initialize simulation pose to inside the field on black line for blue alliance
+    double blueAllianceInitialSimX = 3.586;
+    double blueAllianceInitialSimY = 5.779;
 
-    Pose2d initialSimPose = new Pose2d(redAllianceInitialSimX, redAllianceInitialSimY, new Rotation2d(0));
+    Pose2d initialSimPose = new Pose2d(blueAllianceInitialSimX, blueAllianceInitialSimY, new Rotation2d(3.121));
     mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
     super.resetPose(initialSimPose);
     }
