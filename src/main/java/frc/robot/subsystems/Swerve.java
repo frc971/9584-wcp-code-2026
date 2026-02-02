@@ -62,10 +62,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             getSwerveModuleConstants()
         );
 
+        configureAutoBuilder();
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        configureAutoBuilder();
     }
 
     // Get swerve module constants as an array of constants
@@ -189,7 +189,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     m_simNotifier.startPeriodic(kSimLoopPeriod);
     
     // Initialize simulation pose to inside the field on black line for red alliance
-    double redAllianceInitialSimX = 12.956;
+    double redAllianceInitialSimX = 5.956;
     double redAllianceInitialSimY = 5.936;
 
     Pose2d initialSimPose = new Pose2d(redAllianceInitialSimX, redAllianceInitialSimY, new Rotation2d(0));
