@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -43,6 +44,9 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
+        if (RobotBase.isSimulation()) {
+            PhysicsSim.getInstance().run();
+        }
         // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
@@ -86,7 +90,5 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void simulationPeriodic() {
-        PhysicsSim.getInstance().run();
-    }
+    public void simulationPeriodic() {}
 }

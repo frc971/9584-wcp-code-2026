@@ -25,8 +25,10 @@ public class TalonFXSimProfile extends SimProfile {
     public void run() {
         motorSim.setInputVoltage(talonFXSim.getMotorVoltage());
         motorSim.update(getPeriod().in(Seconds));
-        talonFXSim.setRawRotorPosition(motorSim.getAngularPositionRad());
-        talonFXSim.setRotorVelocity(motorSim.getAngularVelocityRadPerSec() / (2 * Math.PI));
+        double rotations = motorSim.getAngularPositionRad() / (2 * Math.PI);
+        double rotationsPerSecond = motorSim.getAngularVelocityRadPerSec() / (2 * Math.PI);
+        talonFXSim.setRawRotorPosition(rotations);
+        talonFXSim.setRotorVelocity(rotationsPerSecond);
         talonFXSim.setSupplyVoltage(12 - talonFXSim.getSupplyCurrent() * kMotorResistance);
     }
 }
