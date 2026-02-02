@@ -26,6 +26,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Shooter extends SubsystemBase {
     private static final AngularVelocity kVelocityTolerance = RPM.of(100);
@@ -47,6 +48,7 @@ public class Shooter extends SubsystemBase {
         configureMotor(middleMotor, InvertedValue.Clockwise_Positive);
         configureMotor(rightMotor, InvertedValue.Clockwise_Positive);
 
+        motors.forEach(SimDeviceRegistrar::registerTalonFX);
         SmartDashboard.putData(this);
     }
 

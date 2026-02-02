@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Hanger extends SubsystemBase {
     public enum Position {
@@ -91,6 +92,7 @@ public class Hanger extends SubsystemBase {
             );
 
         motor.getConfigurator().apply(config);
+        SimDeviceRegistrar.registerTalonFX(motor);
         SmartDashboard.putData(this);
     }
 
