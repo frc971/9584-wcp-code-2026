@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
@@ -81,6 +82,8 @@ public class Intake extends SubsystemBase {
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
+        SimDeviceRegistrar.registerTalonFX(pivotMotor);
+        SimDeviceRegistrar.registerTalonFX(rollerMotor);
         SmartDashboard.putData(this);
     }
 
