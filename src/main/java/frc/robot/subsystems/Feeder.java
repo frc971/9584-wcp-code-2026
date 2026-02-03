@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Feeder extends SubsystemBase {
     public enum Speed {
@@ -67,6 +68,7 @@ public class Feeder extends SubsystemBase {
             );
         
         motor.getConfigurator().apply(config);
+        SimDeviceRegistrar.registerTalonFX(motor);
         SmartDashboard.putData(this);
     }
 

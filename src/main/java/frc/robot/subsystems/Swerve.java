@@ -3,10 +3,12 @@ package frc.robot.subsystems;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import choreo.Choreo.TrajectoryLogger;
-import choreo.auto.AutoFactory;
 import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -17,10 +19,19 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.utils.simulation.SimSwerveConstants;
+
+import org.littletonrobotics.junction.Logger;
+
+import static edu.wpi.first.units.Units.Seconds;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
@@ -35,11 +46,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
-    /** Swerve request to apply during field-centric path following */
-    private final SwerveRequest.ApplyFieldSpeeds pathFieldSpeedsRequest = new SwerveRequest.ApplyFieldSpeeds();
-    private final PIDController pathXController = new PIDController(10, 0, 0);
-    private final PIDController pathYController = new PIDController(10, 0, 0);
-    private final PIDController pathThetaController = new PIDController(7, 0, 0);
+    private static final double kSimLoopPeriod = 0.005;
+    private Notifier m_simNotifier = null;
+    private static double m_lastSimTime;
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
@@ -50,13 +59,33 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             0,
             VecBuilder.fill(0.1, 0.1, 0.1),
             VecBuilder.fill(0.1, 0.1, 0.1),
-            TunerConstants.FrontLeft, 
-            TunerConstants.FrontRight, 
-            TunerConstants.BackLeft, 
-            TunerConstants.BackRight
+            getSwerveModuleConstants()
         );
+
         configureAutoBuilder();
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
     }
+
+    // Get swerve module constants as an array of constants
+    private static SwerveModuleConstants<?, ?, ?>[] getSwerveModuleConstants() {
+    SwerveModuleConstants<?, ?, ?>[] modules =
+        new SwerveModuleConstants[] {
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight
+        };
+    
+    // Regulate swerve module constants for simulation if in sim
+    if (Utils.isSimulation()) {
+        return MapleSimSwerveDrivetrain
+            .regulateModuleConstantsForSimulation(modules);
+    }
+
+    return modules;
+}
 
     private void configureAutoBuilder() {
     try {
@@ -90,33 +119,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
   }
 
     /**
-     * Creates a new auto factory for this drivetrain.
-     *
-     * @return AutoFactory for this drivetrain
-     */
-    public AutoFactory createAutoFactory() {
-        return createAutoFactory((sample, isStart) -> {});
-    }
-
-    /**
-     * Creates a new auto factory for this drivetrain with the given
-     * trajectory logger.
-     *
-     * @param trajLogger Logger for the trajectory
-     * @return AutoFactory for this drivetrain
-     */
-    public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
-        return new AutoFactory(
-            () -> getState().Pose,
-            this::resetPose,
-            this::followPath,
-            true,
-            this,
-            trajLogger
-        );
-    }
-
-    /**
      * Returns a command that applies the specified control request to this swerve drivetrain.
      *
      * @param request Function returning the request to apply
@@ -124,34 +126,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      */
     public Command applyRequest(Supplier<SwerveRequest> requestSupplier) {
         return run(() -> this.setControl(requestSupplier.get()));
-    }
-
-    /**
-     * Follows the given field-centric path sample with PID.
-     *
-     * @param sample Sample along the path to follow
-     */
-    public void followPath(SwerveSample sample) {
-        pathThetaController.enableContinuousInput(-Math.PI, Math.PI);
-
-        var pose = getState().Pose;
-
-        var targetSpeeds = sample.getChassisSpeeds();
-        targetSpeeds.vxMetersPerSecond += pathXController.calculate(
-            pose.getX(), sample.x
-        );
-        targetSpeeds.vyMetersPerSecond += pathYController.calculate(
-            pose.getY(), sample.y
-        );
-        targetSpeeds.omegaRadiansPerSecond += pathThetaController.calculate(
-            pose.getRotation().getRadians(), sample.heading
-        );
-
-        setControl(
-            pathFieldSpeedsRequest.withSpeeds(targetSpeeds)
-                .withWheelForceFeedforwardsX(sample.moduleForcesX())
-                .withWheelForceFeedforwardsY(sample.moduleForcesY())
-        );
     }
 
     @Override
@@ -176,6 +150,61 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+
+        if (mapleSimSwerveDrivetrain != null) {
+            Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
+            super.resetPose(simPose);
+            Logger.recordOutput("Drive/Pose", simPose);
+          } else {
+            Logger.recordOutput("Drive/Pose", getState().Pose);
+          }
+      
+        Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
+        Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
+        Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
+        Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
+    }
+
+    private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
+
+    private void startSimThread() {
+        mapleSimSwerveDrivetrain =
+        new MapleSimSwerveDrivetrain(
+            Seconds.of(kSimLoopPeriod),
+            SimSwerveConstants.ROBOT_MASS,
+            SimSwerveConstants.BUMPER_LENGTH_X,
+            SimSwerveConstants.BUMPER_LENGTH_Y,
+            SimSwerveConstants.DRIVE_MOTOR_WHEEL,
+            SimSwerveConstants.STEER_MOTOR_WHEEL,
+            SimSwerveConstants.WHEEL_COF,
+            getModuleLocations(),
+            getPigeon2(),
+            getModules(),
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight);
+    /* Run simulation at a faster rate so PID gains behave more reasonably */
+    m_simNotifier = new Notifier(mapleSimSwerveDrivetrain::update);
+    m_simNotifier.startPeriodic(kSimLoopPeriod);
+    
+    // Initialize simulation pose to inside the field on black line for blue alliance
+    double blueAllianceInitialSimX = 3.586;
+    double blueAllianceInitialSimY = 5.779;
+
+    Pose2d initialSimPose = new Pose2d(blueAllianceInitialSimX, blueAllianceInitialSimY, new Rotation2d(3.121));
+    mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
+    super.resetPose(initialSimPose);
+    }
+
+    @Override
+    public void resetPose(Pose2d pose) {
+        if (this.mapleSimSwerveDrivetrain != null) {
+        mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(pose);
+        // Push one sim update instead of blocking the main loop for 0.1s
+        mapleSimSwerveDrivetrain.update();
+        }
+        super.resetPose(pose);
     }
 
     /**
@@ -201,7 +230,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
      * @param timestampSeconds The timestamp of the vision measurement in seconds.
      * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement
-     *     in the form [x, y, theta]ᵀ, with units in meters and radians.
+     *     in the form [x, y, theta]t, with units in meters and radians.
      */
     @Override
     public void addVisionMeasurement(
