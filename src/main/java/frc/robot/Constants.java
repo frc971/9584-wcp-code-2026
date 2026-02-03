@@ -4,10 +4,16 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import edu.wpi.first.units.measure.Acceleration;
+import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import frc.robot.generated.TunerConstants;
 
@@ -28,5 +34,16 @@ public final class Constants {
 
     public static class KrakenX60 {
         public static final AngularVelocity kFreeSpeed = RPM.of(6000);
+    }
+
+    public static class SimConstants {
+        public static final double controllerVelocityCurveExponent = 1.0;
+        public static final double controllerRotationCurveExponent = 1.0;
+        public static final double controllerDeadbandPercentage = 0.02;
+    }
+
+    public static class SlewLimits {
+        public static final LinearAcceleration slewTranslateLimit = MetersPerSecondPerSecond.of(Driving.kMaxSpeed.magnitude() * 10.0);
+        public static final AngularAcceleration slewRotateLimit = RadiansPerSecondPerSecond.of(Driving.kMaxRotationalRate.magnitude() * 30.0);
     }
 }
