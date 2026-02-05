@@ -87,6 +87,7 @@ public class Feeder extends SubsystemBase {
     }
 
     public Command feedCommand() {
+        System.out.println("===========Feed Command");
         return startEnd(
             () -> {
                 System.out.println("feeding fuel to shooter");

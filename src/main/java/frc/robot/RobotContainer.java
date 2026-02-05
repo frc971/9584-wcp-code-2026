@@ -186,12 +186,9 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-        /* 
-        simController.button(2).onTrue(intake.FuelIntakePressed());
-        simController.button(2).onFalse(intake.FuelIntakeReleased());
-        simController.button(3).onTrue(intake.UnfoldIntake());
-        simController.button(4).onTrue(intake.FoldIntake());
-        */
+    
+        simController.button(2).whileTrue(subsystemCommands.aimAndShoot());
+        
     }
 
     private void configureManualDriveBindings() {

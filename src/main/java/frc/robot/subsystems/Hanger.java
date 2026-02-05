@@ -116,8 +116,10 @@ public class Hanger extends SubsystemBase {
             {
                 System.out.println("Setting hanger position to " + position);
                 set(position);
+
             })
-            .andThen(Commands.waitUntil(this::isExtensionWithinTolerance));
+            .andThen(Commands.waitUntil(this::isExtensionWithinTolerance))
+            .andThen(Commands.print("Hanger position set"));
     }
 
     public Command homingCommand() {
