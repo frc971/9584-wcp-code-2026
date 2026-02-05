@@ -88,7 +88,7 @@ public final class SubsystemCommands {
             .andThen(feed())
             .handleInterrupt(() -> shooter.stop());
     }
-
+    
     private Command feed() {
         return Commands.sequence(
             Commands.waitSeconds(0.25),

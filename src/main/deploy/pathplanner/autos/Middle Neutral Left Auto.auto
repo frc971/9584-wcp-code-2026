@@ -42,9 +42,22 @@
           }
         },
         {
-          "type": "named",
+          "type": "race",
           "data": {
-            "name": "Aim and Shoot"
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Aim and Shoot"
+                }
+              }
+            ]
           }
         },
         {
@@ -54,7 +67,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "ZoneMiddleToClimb"
+                  "pathName": "ZoneMiddleRightToClimb"
                 }
               },
               {

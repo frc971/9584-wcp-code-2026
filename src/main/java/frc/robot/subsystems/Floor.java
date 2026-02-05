@@ -70,7 +70,7 @@ public class Floor extends SubsystemBase {
 
     public Command feedCommand() {
         System.out.println("================Floor Feed Command");
-        return startEnd(() -> set(Speed.FEED), () -> {System.out.println("floor feeding"); set(Speed.STOP);});
+        return startEnd(() -> {System.out.println("Starting floor feed"); set(Speed.FEED);}, () -> {System.out.println("stopping floor feed"); set(Speed.STOP);});
     }
 
     @Override
