@@ -97,8 +97,8 @@ public class RobotContainer {
         shooter,
         hood,
         hanger,
-        () -> -simController.getRawAxis(1),
-        () -> -simController.getRawAxis(0)
+        this::getSimForwardInput,
+        this::getSimLeftInput
     );
 
     private SendableChooser<Command> autoChooser;
@@ -174,42 +174,70 @@ public class RobotContainer {
                 if (!isSimButtonPressed(Constants.SimControllerButtons.kRobotCentricMode)) {
                     double fieldX = fieldXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
                     double fieldY = fieldYSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
                     double fieldRotate = fieldRotateSlewFilter.calculate(
                         Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
                     return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
                 } else {
                     double robotX = robotXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
                     double robotY = robotYSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
                     double robotRotate = robotRotateSlewFilter.calculate(
                         Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAimAndShoot)
+            .or(driver.rightTrigger())
             .whileTrue(simSubsystemCommands.aimAndShoot());
         simButton(Constants.SimControllerButtons.kAutoAim)
+            .or(driver.rightStick())
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kShootManually)
+            .or(driver.rightBumper())
             .whileTrue(simSubsystemCommands.shootManually());
         simButton(Constants.SimControllerButtons.kIntake)
+            .or(driver.leftTrigger())
             .whileTrue(intake.intakeCommand());
         simButton(Constants.SimControllerButtons.kStowIntake)
+            .or(driver.leftBumper())
             .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         simButton(Constants.SimControllerButtons.kHangerUp)
+            .or(driver.povUp())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         simButton(Constants.SimControllerButtons.kHangerDown)
+            .or(driver.povDown())
             .onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+    }
+
+    private double getSimForwardInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(1);
+        }
+        return -driver.getLeftY();
+    }
+
+    private double getSimLeftInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(0);
+        }
+        return -driver.getLeftX();
+    }
+
+    private double getSimRotationInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(2);
+        }
+        return -driver.getRightX();
     }
 
     private boolean isSimControllerConnected() {

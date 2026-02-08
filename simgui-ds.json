@@ -1,9 +1,4 @@
 {
-  "Keyboard 2 Settings": {
-    "window": {
-      "visible": true
-    }
-  },
   "keyboardJoysticks": [
     {
       "axisConfig": [
@@ -97,7 +92,7 @@
     {},
     {},
     {
-      "guid": "Keyboard2"
+      "guid": "Keyboard0"
     }
   ]
 }
