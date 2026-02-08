@@ -67,11 +67,11 @@ public final class Constants {
     public static class ClimbAlignment {
         // Stage center poses for the 2026 REBUILT field, measured in field coordinates.
         public static final Pose2d kBlueAllianceTargetPose = new Pose2d(
-            new Translation2d(Meters.of(1.0505812574139983), Meters.of(3.726)),
+            new Translation2d(Meters.of(1.46), Meters.of(3.73)),
             Rotation2d.k180deg
         );
         public static final Pose2d kRedAllianceTargetPose = new Pose2d(
-            new Translation2d(Meters.of(15.489418742586002), Meters.of(3.726)),
+            new Translation2d(Meters.of(15.06), Meters.of(4.3)),
             Rotation2d.kZero
         );
 
