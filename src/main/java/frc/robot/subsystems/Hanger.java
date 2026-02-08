@@ -123,11 +123,11 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command climbCommand() {
-        return Commands.print("Hanger climb command placeholder");
+        return positionCommand(Position.HANGING);
     }
 
     public Command unclimbCommand() {
-        return Commands.print("Hanger unclimb command placeholder");
+        return positionCommand(Position.HUNG);
     }
 
     public Command homingCommand() {
