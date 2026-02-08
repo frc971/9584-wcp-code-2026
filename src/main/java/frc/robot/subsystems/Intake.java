@@ -166,12 +166,17 @@ public class Intake extends SubsystemBase {
     }
 
     public Command intakeCommand() {
+        System.out.println("========Intake Command");
         return startEnd(
             () -> {
+                System.out.println("Starting Intake");
                 set(Position.INTAKE);
                 set(Speed.INTAKE);
             },
-            () -> set(Speed.STOP)
+            () -> {
+                System.out.println("Stopping Intake");
+                set(Speed.STOP);
+            }
         );
     }
 

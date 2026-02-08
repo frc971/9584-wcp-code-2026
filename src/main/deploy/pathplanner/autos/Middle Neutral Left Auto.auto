@@ -17,15 +17,72 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "MiddleLeftToNeutral"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "MiddleLeftToNeutral"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "MiddleLeftToRightClimb"
+            "pathName": "MiddleLeftToRightZoneMiddle"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 3.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Aim and Shoot"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "ZoneMiddleRightToClimb"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Hanger Extend Command"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Hanger Hook Command"
           }
         }
       ]
