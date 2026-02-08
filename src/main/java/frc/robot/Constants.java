@@ -4,12 +4,18 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.pathplanner.lib.path.PathConstraints;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.measure.Acceleration;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -56,6 +62,27 @@ public final class Constants {
         public static final int kStowIntake = 9;         // G
         public static final int kHangerUp = 10;          // H
         public static final int kHangerDown = 11;        // J
+    }
+
+    public static class ClimbAlignment {
+        // TODO: Update these poses with the actual stage coordinates when available.
+        public static final Pose2d kBlueAllianceTargetPose = new Pose2d(
+            new Translation2d(Inches.of(220.0), Inches.of(200.0)),
+            Rotation2d.kZero
+        );
+        public static final Pose2d kRedAllianceTargetPose = new Pose2d(
+            new Translation2d(Inches.of(432.0), Inches.of(200.0)),
+            Rotation2d.k180deg
+        );
+
+        public static final PathConstraints kPathConstraints = new PathConstraints(
+            3.0,
+            2.0,
+            Math.toRadians(540.0),
+            Math.toRadians(720.0)
+        );
+        public static final double kGoalEndVelocityMetersPerSecond = 0.0;
+        public static final double kRotationDelayDistanceMeters = 0.0;
     }
 
     public static class SlewLimits {

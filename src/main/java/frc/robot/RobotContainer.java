@@ -7,6 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Optional;
+import java.util.Set;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -160,6 +161,7 @@ public class RobotContainer {
         driver.rightBumper().whileTrue(subsystemCommands.shootManually());
         driver.leftTrigger().whileTrue(intake.intakeCommand());
         driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
+        driver.start().onTrue(autoAlignClimbCommand());
 
         driver.povUp().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
@@ -206,7 +208,7 @@ public class RobotContainer {
             .or(driverRightStickButton())
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
-            .onTrue(Commands.print("Sim: Auto-align climb placeholder"));
+            .onTrue(autoAlignClimbCommand());
         simButton(Constants.SimControllerButtons.kClimb)
             .onTrue(hanger.climbCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
@@ -322,6 +324,17 @@ public class RobotContainer {
         driver.x().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.kCCW_90deg)));
         driver.y().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.kZero)));
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
+    }
+
+    private Command autoAlignClimbCommand() {
+        return Commands.defer(
+            () -> AutoBuilder.pathfindToPose(
+                Landmarks.climbPose(),
+                Constants.ClimbAlignment.kPathConstraints,
+                Constants.ClimbAlignment.kGoalEndVelocityMetersPerSecond
+            ),
+            Set.of(swerve)
+        );
     }
 
     private Command updateVisionCommand() {
