@@ -208,9 +208,9 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .onTrue(Commands.print("Sim: Auto-align climb placeholder"));
         simButton(Constants.SimControllerButtons.kClimb)
-            .onTrue(Commands.print("Sim: Climb placeholder"));
+            .onTrue(hanger.climbCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
-            .onTrue(Commands.print("Sim: Unclimb placeholder"));
+            .onTrue(hanger.unclimbCommand());
         simButton(Constants.SimControllerButtons.kAimAndShoot)
             .or(driverRightTrigger())
             .whileTrue(simSubsystemCommands.aimAndShoot());
