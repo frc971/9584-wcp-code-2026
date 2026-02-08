@@ -243,10 +243,10 @@ public class RobotContainer {
 
     private double getSimLeftInput() {
         if (isSimControllerConnected()) {
-            return -simController.getRawAxis(0);
+            return simController.getRawAxis(0);
         }
         if (isDriverControllerConnected()) {
-            return -driver.getLeftX();
+            return driver.getLeftX();
         }
         return 0.0;
     }
