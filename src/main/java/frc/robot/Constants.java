@@ -42,6 +42,17 @@ public final class Constants {
         public static final double controllerDeadbandPercentage = 0.02;
     }
 
+    public static class SimControllerButtons {
+        public static final int kRobotCentricMode = 1;
+        public static final int kAimAndShoot = 2;
+        public static final int kAutoAim = 3;
+        public static final int kShootManually = 4;
+        public static final int kIntake = 5;
+        public static final int kStowIntake = 6;
+        public static final int kHangerUp = 7;
+        public static final int kHangerDown = 8;
+    }
+
     public static class SlewLimits {
         public static final LinearAcceleration slewTranslateLimit = MetersPerSecondPerSecond.of(Driving.kMaxSpeed.magnitude() * 10.0);
         public static final AngularAcceleration slewRotateLimit = RadiansPerSecondPerSecond.of(Driving.kMaxRotationalRate.magnitude() * 30.0);

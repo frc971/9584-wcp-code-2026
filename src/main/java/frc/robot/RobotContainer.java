@@ -89,10 +89,24 @@ public class RobotContainer {
         () -> -driver.getLeftX()
     );
 
+    private final SubsystemCommands simSubsystemCommands = new SubsystemCommands(
+        swerve,
+        intake,
+        floor,
+        feeder,
+        shooter,
+        hood,
+        hanger,
+        () -> -simController.getRawAxis(1),
+        () -> -simController.getRawAxis(0)
+    );
+
     private SendableChooser<Command> autoChooser;
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+        limelight.setDefaultCommand(updateVisionCommand());
+
         if (RobotBase.isReal()){
             configureBindings();
         }
@@ -130,7 +144,6 @@ public class RobotContainer {
      */
     private void configureBindings() {
         configureManualDriveBindings();
-        limelight.setDefaultCommand(updateVisionCommand());
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.homingCommand())
@@ -149,7 +162,7 @@ public class RobotContainer {
     private void configureSimBindings() {
         swerve.setDefaultCommand(
             swerve.applyRequest(() -> {
-                if (!DriverStation.isJoystickConnected(2)) {
+                if (!isSimControllerConnected()) {
                     return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
                 }
 
@@ -158,7 +171,7 @@ public class RobotContainer {
                 double exponentRotation =
                     Constants.SimConstants.controllerRotationCurveExponent;
 
-                if (!simController.button(1).getAsBoolean()) {
+                if (!isSimButtonPressed(Constants.SimControllerButtons.kRobotCentricMode)) {
                     double fieldX = fieldXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
                             * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
@@ -182,12 +195,33 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-        /* 
-        simController.button(2).onTrue(intake.FuelIntakePressed());
-        simController.button(2).onFalse(intake.FuelIntakeReleased());
-        simController.button(3).onTrue(intake.UnfoldIntake());
-        simController.button(4).onTrue(intake.FoldIntake());
-        */
+        // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
+        simButton(Constants.SimControllerButtons.kAimAndShoot)
+            .whileTrue(simSubsystemCommands.aimAndShoot());
+        simButton(Constants.SimControllerButtons.kAutoAim)
+            .whileTrue(simSubsystemCommands.autoAim());
+        simButton(Constants.SimControllerButtons.kShootManually)
+            .whileTrue(simSubsystemCommands.shootManually());
+        simButton(Constants.SimControllerButtons.kIntake)
+            .whileTrue(intake.intakeCommand());
+        simButton(Constants.SimControllerButtons.kStowIntake)
+            .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
+        simButton(Constants.SimControllerButtons.kHangerUp)
+            .onTrue(hanger.positionCommand(Hanger.Position.HANGING));
+        simButton(Constants.SimControllerButtons.kHangerDown)
+            .onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+    }
+
+    private boolean isSimControllerConnected() {
+        return DriverStation.isJoystickConnected(simController.getHID().getPort());
+    }
+
+    private boolean isSimButtonPressed(int buttonNumber) {
+        return isSimControllerConnected() && simController.getHID().getRawButton(buttonNumber);
+    }
+
+    private Trigger simButton(int buttonNumber) {
+        return new Trigger(() -> isSimButtonPressed(buttonNumber));
     }
 
     private void configureManualDriveBindings() {
