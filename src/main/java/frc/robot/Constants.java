@@ -4,9 +4,9 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.RPM;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -65,14 +65,14 @@ public final class Constants {
     }
 
     public static class ClimbAlignment {
-        // TODO: Update these poses with the actual stage coordinates when available.
+        // Stage center poses for the 2026 REBUILT field, measured in field coordinates.
         public static final Pose2d kBlueAllianceTargetPose = new Pose2d(
-            new Translation2d(Inches.of(220.0), Inches.of(200.0)),
-            Rotation2d.kZero
+            new Translation2d(Meters.of(1.0505812574139983), Meters.of(3.726)),
+            Rotation2d.k180deg
         );
         public static final Pose2d kRedAllianceTargetPose = new Pose2d(
-            new Translation2d(Inches.of(432.0), Inches.of(200.0)),
-            Rotation2d.k180deg
+            new Translation2d(Meters.of(15.489418742586002), Meters.of(3.726)),
+            Rotation2d.kZero
         );
 
         public static final PathConstraints kPathConstraints = new PathConstraints(
