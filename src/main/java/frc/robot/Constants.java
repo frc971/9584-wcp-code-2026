@@ -43,14 +43,20 @@ public final class Constants {
     }
 
     public static class SimControllerButtons {
-        public static final int kRobotCentricMode = 1;
-        public static final int kAimAndShoot = 2;
-        public static final int kAutoAim = 3;
-        public static final int kShootManually = 4;
-        public static final int kIntake = 5;
-        public static final int kStowIntake = 6;
-        public static final int kHangerUp = 7;
-        public static final int kHangerDown = 8;
+        // ZXCV on sim for now
+        public static final int kAutoAim = 1;
+        public static final int kAutoAlignClimb = 2;
+        public static final int kClimb = 3;
+        public static final int kUnclimb = 4;
+
+        // TODO: need to bind on actual controller
+        public static final int kRobotCentricMode = 5;
+        public static final int kAimAndShoot = 6;
+        public static final int kShootManually = 7;
+        public static final int kIntake = 8;
+        public static final int kStowIntake = 9;
+        public static final int kHangerUp = 10;
+        public static final int kHangerDown = 11;
     }
 
     public static class SlewLimits {

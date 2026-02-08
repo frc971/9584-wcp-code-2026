@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -196,26 +197,32 @@ public class RobotContainer {
                 }
             }));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
-        simButton(Constants.SimControllerButtons.kAimAndShoot)
-            .or(driver.rightTrigger())
-            .whileTrue(simSubsystemCommands.aimAndShoot());
         simButton(Constants.SimControllerButtons.kAutoAim)
-            .or(driver.rightStick())
+            .or(driverRightStickButton())
             .whileTrue(simSubsystemCommands.autoAim());
+        simButton(Constants.SimControllerButtons.kAutoAlignClimb)
+            .onTrue(Commands.print("Sim: Auto-align climb placeholder"));
+        simButton(Constants.SimControllerButtons.kClimb)
+            .onTrue(Commands.print("Sim: Climb placeholder"));
+        simButton(Constants.SimControllerButtons.kUnclimb)
+            .onTrue(Commands.print("Sim: Unclimb placeholder"));
+        simButton(Constants.SimControllerButtons.kAimAndShoot)
+            .or(driverRightTrigger())
+            .whileTrue(simSubsystemCommands.aimAndShoot());
         simButton(Constants.SimControllerButtons.kShootManually)
-            .or(driver.rightBumper())
+            .or(driverRightBumper())
             .whileTrue(simSubsystemCommands.shootManually());
         simButton(Constants.SimControllerButtons.kIntake)
-            .or(driver.leftTrigger())
+            .or(driverLeftTrigger())
             .whileTrue(intake.intakeCommand());
         simButton(Constants.SimControllerButtons.kStowIntake)
-            .or(driver.leftBumper())
+            .or(driverLeftBumper())
             .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         simButton(Constants.SimControllerButtons.kHangerUp)
-            .or(driver.povUp())
+            .or(driverPovUp())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         simButton(Constants.SimControllerButtons.kHangerDown)
-            .or(driver.povDown())
+            .or(driverPovDown())
             .onTrue(hanger.positionCommand(Hanger.Position.HUNG));
     }
 
@@ -223,29 +230,74 @@ public class RobotContainer {
         if (isSimControllerConnected()) {
             return -simController.getRawAxis(1);
         }
-        return -driver.getLeftY();
+        if (isDriverControllerConnected()) {
+            return -driver.getLeftY();
+        }
+        return 0.0;
     }
 
     private double getSimLeftInput() {
         if (isSimControllerConnected()) {
             return -simController.getRawAxis(0);
         }
-        return -driver.getLeftX();
+        if (isDriverControllerConnected()) {
+            return -driver.getLeftX();
+        }
+        return 0.0;
     }
 
     private double getSimRotationInput() {
         if (isSimControllerConnected()) {
             return -simController.getRawAxis(2);
         }
-        return -driver.getRightX();
+        if (isDriverControllerConnected()) {
+            return -driver.getRightX();
+        }
+        return 0.0;
     }
 
     private boolean isSimControllerConnected() {
         return DriverStation.isJoystickConnected(simController.getHID().getPort());
     }
 
+    private boolean isDriverControllerConnected() {
+        return DriverStation.isJoystickConnected(driver.getHID().getPort());
+    }
+
+    private Trigger driverRightTrigger() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.25);
+    }
+
+    private Trigger driverLeftTrigger() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.25);
+    }
+
+    private Trigger driverRightBumper() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kRightBumper.value));
+    }
+
+    private Trigger driverLeftBumper() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kLeftBumper.value));
+    }
+
+    private Trigger driverRightStickButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kRightStick.value));
+    }
+
+    private Trigger driverPovUp() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 0);
+    }
+
+    private Trigger driverPovDown() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 180);
+    }
+
+    private boolean isSimButtonAvailable(int buttonNumber) {
+        return isSimControllerConnected() && simController.getHID().getButtonCount() >= buttonNumber;
+    }
+
     private boolean isSimButtonPressed(int buttonNumber) {
-        return isSimControllerConnected() && simController.getHID().getRawButton(buttonNumber);
+        return isSimButtonAvailable(buttonNumber) && simController.getHID().getRawButton(buttonNumber);
     }
 
     private Trigger simButton(int buttonNumber) {
