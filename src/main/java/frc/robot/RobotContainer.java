@@ -168,7 +168,7 @@ public class RobotContainer {
     private void configureSimBindings() {
         swerve.setDefaultCommand(
             swerve.applyRequest(() -> {
-                if (!isSimControllerConnected()) {
+                if (!isSimControllerConnected() && !isDriverControllerConnected()) {
                     return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
                 }
 

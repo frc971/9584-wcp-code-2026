@@ -84,6 +84,7 @@ public final class SubsystemCommands {
     }
 
     public Command autoAim() {
+        System.out.println("Running aim and drive command");
         return new AimAndDriveCommand(swerve, forwardInput, leftInput);
     }
 
