@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -89,10 +90,24 @@ public class RobotContainer {
         () -> -driver.getLeftX()
     );
 
+    private final SubsystemCommands simSubsystemCommands = new SubsystemCommands(
+        swerve,
+        intake,
+        floor,
+        feeder,
+        shooter,
+        hood,
+        hanger,
+        this::getSimForwardInput,
+        this::getSimLeftInput
+    );
+
     private SendableChooser<Command> autoChooser;
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
+        limelight.setDefaultCommand(updateVisionCommand());
+
         if (RobotBase.isReal()){
             configureBindings();
         }
@@ -135,13 +150,13 @@ public class RobotContainer {
      */
     private void configureBindings() {
         configureManualDriveBindings();
-        limelight.setDefaultCommand(updateVisionCommand());
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.homingCommand())
             .onTrue(hanger.homingCommand());
 
         driver.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+        driver.rightStick().whileTrue(subsystemCommands.autoAim());
         driver.rightBumper().whileTrue(subsystemCommands.shootManually());
         driver.leftTrigger().whileTrue(intake.intakeCommand());
         driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -153,7 +168,7 @@ public class RobotContainer {
     private void configureSimBindings() {
         swerve.setDefaultCommand(
             swerve.applyRequest(() -> {
-                if (!DriverStation.isJoystickConnected(2)) {
+                if (!isSimControllerConnected()) {
                     return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
                 }
 
@@ -162,33 +177,136 @@ public class RobotContainer {
                 double exponentRotation =
                     Constants.SimConstants.controllerRotationCurveExponent;
 
-                if (!simController.button(1).getAsBoolean()) {
+                if (!isSimButtonPressed(Constants.SimControllerButtons.kRobotCentricMode)) {
                     double fieldX = fieldXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
                     double fieldY = fieldYSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
                     double fieldRotate = fieldRotateSlewFilter.calculate(
                         Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
                     return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
                 } else {
                     double robotX = robotXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(0), exponentVelocity));
+                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
                     double robotY = robotYSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(1), exponentVelocity));
+                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
                     double robotRotate = robotRotateSlewFilter.calculate(
                         Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(-simController.getRawAxis(2), exponentRotation));
+                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-    
-        simController.button(2).whileTrue(subsystemCommands.aimAndShoot());
-        
+        // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
+        simButton(Constants.SimControllerButtons.kAutoAim)
+            .or(driverRightStickButton())
+            .whileTrue(simSubsystemCommands.autoAim());
+        simButton(Constants.SimControllerButtons.kAutoAlignClimb)
+            .onTrue(Commands.print("Sim: Auto-align climb placeholder"));
+        simButton(Constants.SimControllerButtons.kClimb)
+            .onTrue(hanger.climbCommand());
+        simButton(Constants.SimControllerButtons.kUnclimb)
+            .onTrue(hanger.unclimbCommand());
+        simButton(Constants.SimControllerButtons.kAimAndShoot)
+            .or(driverRightTrigger())
+            .whileTrue(simSubsystemCommands.aimAndShoot());
+        simButton(Constants.SimControllerButtons.kShootManually)
+            .or(driverRightBumper())
+            .whileTrue(simSubsystemCommands.shootManually());
+        simButton(Constants.SimControllerButtons.kIntake)
+            .or(driverLeftTrigger())
+            .whileTrue(intake.intakeCommand());
+        simButton(Constants.SimControllerButtons.kStowIntake)
+            .or(driverLeftBumper())
+            .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
+        simButton(Constants.SimControllerButtons.kHangerUp)
+            .or(driverPovUp())
+            .onTrue(hanger.positionCommand(Hanger.Position.HANGING));
+        simButton(Constants.SimControllerButtons.kHangerDown)
+            .or(driverPovDown())
+            .onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+    }
+
+    private double getSimForwardInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(1);
+        }
+        if (isDriverControllerConnected()) {
+            return -driver.getLeftY();
+        }
+        return 0.0;
+    }
+
+    private double getSimLeftInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(0);
+        }
+        if (isDriverControllerConnected()) {
+            return -driver.getLeftX();
+        }
+        return 0.0;
+    }
+
+    private double getSimRotationInput() {
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(2);
+        }
+        if (isDriverControllerConnected()) {
+            return -driver.getRightX();
+        }
+        return 0.0;
+    }
+
+    private boolean isSimControllerConnected() {
+        return DriverStation.isJoystickConnected(simController.getHID().getPort());
+    }
+
+    private boolean isDriverControllerConnected() {
+        return DriverStation.isJoystickConnected(driver.getHID().getPort());
+    }
+
+    private Trigger driverRightTrigger() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.25);
+    }
+
+    private Trigger driverLeftTrigger() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.25);
+    }
+
+    private Trigger driverRightBumper() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kRightBumper.value));
+    }
+
+    private Trigger driverLeftBumper() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kLeftBumper.value));
+    }
+
+    private Trigger driverRightStickButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kRightStick.value));
+    }
+
+    private Trigger driverPovUp() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 0);
+    }
+
+    private Trigger driverPovDown() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 180);
+    }
+
+    private boolean isSimButtonAvailable(int buttonNumber) {
+        return isSimControllerConnected() && simController.getHID().getButtonCount() >= buttonNumber;
+    }
+
+    private boolean isSimButtonPressed(int buttonNumber) {
+        return isSimButtonAvailable(buttonNumber) && simController.getHID().getRawButton(buttonNumber);
+    }
+
+    private Trigger simButton(int buttonNumber) {
+        return new Trigger(() -> isSimButtonPressed(buttonNumber));
     }
 
     private void configureManualDriveBindings() {
