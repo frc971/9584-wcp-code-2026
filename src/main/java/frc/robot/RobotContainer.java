@@ -104,7 +104,12 @@ public class RobotContainer {
     }
 
     private void configureAutonomous() {
-        //NamedCommands.registerCommand("Intake Fuel", autoCommands.AutoIntakeFuel());
+        NamedCommands.registerCommand("Intake", intake.intakeCommand());
+        NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
+        // Extend the hanger (hooks) to be able to reach the L1 bar
+        NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGING));
+        // Retract the hanger to hook onto the L1 bar
+        NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HUNG));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -181,12 +186,9 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-        /* 
-        simController.button(2).onTrue(intake.FuelIntakePressed());
-        simController.button(2).onFalse(intake.FuelIntakeReleased());
-        simController.button(3).onTrue(intake.UnfoldIntake());
-        simController.button(4).onTrue(intake.FoldIntake());
-        */
+    
+        simController.button(2).whileTrue(subsystemCommands.aimAndShoot());
+        
     }
 
     private void configureManualDriveBindings() {
