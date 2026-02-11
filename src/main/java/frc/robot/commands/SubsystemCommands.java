@@ -1,9 +1,13 @@
 package frc.robot.commands;
 
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import com.pathplanner.lib.auto.AutoBuilder;
+import frc.robot.Constants;
+import frc.robot.Landmarks;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -91,6 +95,17 @@ public final class SubsystemCommands {
         return shooter.dashboardSpinUpCommand()
             .andThen(feed())
             .handleInterrupt(() -> shooter.stop());
+    }
+
+    public Command autoAlignClimbCommand() {
+        return Commands.defer(
+            () -> AutoBuilder.pathfindToPose(
+                Landmarks.climbPose(),
+                Constants.ClimbAlignment.kPathConstraints,
+                Constants.ClimbAlignment.kGoalEndVelocityMetersPerSecond
+            ),
+            Set.of(swerve)
+        );
     }
     
     private Command feed() {
