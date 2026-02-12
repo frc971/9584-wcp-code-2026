@@ -6,21 +6,28 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.sim.PhysicsSim;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
  * this project, you must also update the Main.java file in the project.
  */
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
     private final RobotContainer m_robotContainer;
     private Command m_autonomousCommand;
     
@@ -29,6 +36,7 @@ public class Robot extends TimedRobot {
      * initialization code.
      */
     public Robot() {
+        configureLogging();
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
@@ -98,5 +106,24 @@ public class Robot extends TimedRobot {
         if (RobotBase.isSimulation()) {
             DriverStation.silenceJoystickConnectionWarning(true);
         }
+    }
+
+    private void configureLogging() {
+        Logger.recordMetadata("ProjectName", "9584-wcp-code-2026");
+        Logger.recordMetadata("Robot", RobotBase.isReal() ? "Real" : "Simulation");
+
+        if (RobotBase.isReal()) {
+            Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+        } else {
+            try {
+                Files.createDirectories(Path.of("logs"));
+            } catch (IOException ex) {
+                DriverStation.reportError("Failed to create logs directory: " + ex.getMessage(), false);
+            }
+            Logger.addDataReceiver(new WPILOGWriter("logs/"));
+        }
+
+        Logger.addDataReceiver(new NT4Publisher());
+        Logger.start();
     }
 }
