@@ -172,7 +172,7 @@ public class RobotContainer {
     private void configureSimBindings() {
         swerve.setDefaultCommand(
             swerve.applyRequest(() -> {
-                if (!isSimControllerConnected()) {
+                if (!isSimControllerConnected() && !isDriverControllerConnected()) {
                     return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
                 }
 
@@ -236,31 +236,31 @@ public class RobotContainer {
     }
 
     private double getSimForwardInput() {
-        if (isSimControllerConnected()) {
-            return -simController.getRawAxis(1);
-        }
         if (isDriverControllerConnected()) {
             return -driver.getLeftY();
+        }
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(1);
         }
         return 0.0;
     }
 
     private double getSimLeftInput() {
-        if (isSimControllerConnected()) {
-            return -simController.getRawAxis(0);
-        }
         if (isDriverControllerConnected()) {
-            return -driver.getLeftX();
+            return driver.getLeftX();
+        }
+        if (isSimControllerConnected()) {
+            return simController.getRawAxis(0);
         }
         return 0.0;
     }
 
     private double getSimRotationInput() {
-        if (isSimControllerConnected()) {
-            return -simController.getRawAxis(2);
-        }
         if (isDriverControllerConnected()) {
             return -driver.getRightX();
+        }
+        if (isSimControllerConnected()) {
+            return -simController.getRawAxis(2);
         }
         return 0.0;
     }
