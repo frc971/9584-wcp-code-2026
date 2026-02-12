@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.Optional;
@@ -11,12 +12,18 @@ import java.util.Optional;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -40,9 +47,12 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
+import frc.robot.utils.simulation.Dimensions;
+import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -119,6 +129,9 @@ public class RobotContainer {
             configureSimBindings();
         }
         configureAutonomous();
+        if (RobotBase.isSimulation()) {
+            configureFuelSim();
+        }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
     }
@@ -133,6 +146,95 @@ public class RobotContainer {
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
+    }
+
+    private void configureFuelSim() {
+        FuelSim instance = FuelSim.getInstance();
+        instance.clearFuel();
+        instance.registerRobot(
+            Dimensions.FULL_WIDTH,
+            Dimensions.FULL_LENGTH,
+            Dimensions.BUMPER_HEIGHT,
+            () -> swerve.getState().Pose,
+            this::getFieldRelativeChassisSpeedsForSim
+        );
+        instance.registerIntake(
+            -Dimensions.FULL_LENGTH / 2.0,
+            Dimensions.FULL_LENGTH / 2.0,
+            -Dimensions.FULL_WIDTH / 2.0,
+            Dimensions.FULL_WIDTH / 2.0,
+            intake::isIntaking,
+            () -> Logger.recordOutput("FuelSim/LastEvent", "Intake")
+        );
+
+        instance.spawnStartingFuel();
+        instance.start();
+
+        Command spawnFuelCommand = Commands.runOnce(this::spawnFuelInFrontOfRobot)
+            .ignoringDisable(true)
+            .withName("FuelSim/Spawn Fuel");
+        Command resetFuelCommand = Commands.runOnce(() -> {
+                instance.clearFuel();
+                instance.spawnStartingFuel();
+                Logger.recordOutput("FuelSim/LastEvent", "Reset");
+            })
+            .ignoringDisable(true)
+            .withName("FuelSim/Reset Fuel");
+        Command launchFuelCommand = Commands.runOnce(() -> launchFuelInSim(MetersPerSecond.of(8), Degrees.of(45)))
+            .ignoringDisable(true)
+            .withName("FuelSim/Launch Fuel");
+
+        SmartDashboard.putData(spawnFuelCommand);
+        SmartDashboard.putData(resetFuelCommand);
+        SmartDashboard.putData(launchFuelCommand);
+    }
+
+    private void spawnFuelInFrontOfRobot() {
+        Pose2d pose = swerve.getState().Pose;
+        Translation2d offset = new Translation2d(Dimensions.FULL_LENGTH / 2.0 + 0.1, 0)
+            .rotateBy(pose.getRotation());
+        Translation3d location = new Translation3d(
+            pose.getX() + offset.getX(),
+            pose.getY() + offset.getY(),
+            Dimensions.BUMPER_HEIGHT / 2.0
+        );
+        FuelSim.getInstance().spawnFuel(location, new Translation3d());
+        Logger.recordOutput("FuelSim/LastEvent", "Manual Spawn");
+    }
+
+    private void launchFuelInSim(LinearVelocity velocity, Angle elevation) {
+        Pose2d pose = swerve.getState().Pose;
+        Translation2d muzzleOffset = new Translation2d(Dimensions.FULL_LENGTH / 2.0, 0)
+            .rotateBy(pose.getRotation());
+        Translation3d initialPosition = new Translation3d(
+            pose.getX() + muzzleOffset.getX(),
+            pose.getY() + muzzleOffset.getY(),
+            Dimensions.BUMPER_HEIGHT + 0.25
+        );
+        Translation3d launchVelocity = createLaunchVelocity(velocity, elevation, pose.getRotation());
+        FuelSim.getInstance().spawnFuel(initialPosition, launchVelocity);
+        Logger.recordOutput("FuelSim/LastEvent", "Launch");
+    }
+
+    private Translation3d createLaunchVelocity(LinearVelocity velocity, Angle elevation, Rotation2d heading) {
+        double speed = velocity.in(MetersPerSecond);
+        double elevationRadians = elevation.in(Radians);
+        double planarSpeed = speed * Math.cos(elevationRadians);
+        double verticalSpeed = speed * Math.sin(elevationRadians);
+        Translation2d planar = new Translation2d(planarSpeed, 0).rotateBy(heading);
+        return new Translation3d(planar.getX(), planar.getY(), verticalSpeed);
+    }
+
+    private ChassisSpeeds getFieldRelativeChassisSpeedsForSim() {
+        ChassisSpeeds speeds = swerve.getState().Speeds;
+        if (speeds == null) {
+            return new ChassisSpeeds();
+        }
+        return new ChassisSpeeds(
+            speeds.vxMetersPerSecond,
+            speeds.vyMetersPerSecond,
+            speeds.omegaRadiansPerSecond
+        );
     }
 
     public Command getAutonomousCommand() {
