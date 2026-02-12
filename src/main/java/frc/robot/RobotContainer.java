@@ -189,6 +189,16 @@ public class RobotContainer {
         SmartDashboard.putData(launchFuelCommand);
     }
 
+    public void resetFuelSim() {
+        if (!RobotBase.isSimulation()) {
+            return;
+        }
+        FuelSim instance = FuelSim.getInstance();
+        instance.clearFuel();
+        instance.spawnStartingFuel();
+        Logger.recordOutput("FuelSim/LastEvent", "Auto Reset");
+    }
+
     private void spawnFuelInFrontOfRobot() {
         Pose2d pose = swerve.getState().Pose;
         Translation2d offset = new Translation2d(Dimensions.FULL_LENGTH / 2.0 + 0.1, 0)

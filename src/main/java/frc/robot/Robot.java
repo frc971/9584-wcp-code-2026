@@ -74,6 +74,9 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
+        if (RobotBase.isSimulation()) {
+            m_robotContainer.resetFuelSim();
+        }
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);;
