@@ -210,8 +210,10 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kRobotCentricMode)
             .onTrue(Commands.runOnce(this::toggleSimRobotCentricMode));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
+        final Trigger robotCentricModeTrigger = new Trigger(() -> simRobotCentricMode);
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
+            .or(robotCentricModeTrigger)
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .onTrue(simSubsystemCommands.autoAlignClimbCommand());
