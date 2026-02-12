@@ -60,7 +60,10 @@ public class RobotContainer {
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
 
-    private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
+    private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(
+        Driving.kMaxSpeed.in(MetersPerSecond),
+        swerve::getRobotRotation3d
+    );
     
     private final CommandXboxController driver = new CommandXboxController(0);
     private final CommandJoystick simController = new CommandJoystick(2);
@@ -77,6 +80,7 @@ public class RobotContainer {
     private final SlewRateLimiter robotXSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
+    private boolean simRobotCentricMode = false;
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
@@ -115,6 +119,7 @@ public class RobotContainer {
             configureSimBindings();
         }
         configureAutonomous();
+        SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
     }
 
@@ -160,6 +165,7 @@ public class RobotContainer {
         driver.rightBumper().whileTrue(subsystemCommands.shootManually());
         driver.leftTrigger().whileTrue(intake.intakeCommand());
         driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
+        driver.start().onTrue(subsystemCommands.autoAlignClimbCommand());
 
         driver.povUp().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
         driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
@@ -177,7 +183,7 @@ public class RobotContainer {
                 double exponentRotation =
                     Constants.SimConstants.controllerRotationCurveExponent;
 
-                if (!isSimButtonPressed(Constants.SimControllerButtons.kRobotCentricMode)) {
+                if (!simRobotCentricMode) {
                     double fieldX = fieldXSlewFilter.calculate(
                         Constants.Driving.kMaxSpeed.in(MetersPerSecond)
                             * ExponentialConvert(getSimLeftInput(), exponentVelocity));
@@ -201,12 +207,16 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
+        simButton(Constants.SimControllerButtons.kRobotCentricMode)
+            .onTrue(Commands.runOnce(this::toggleSimRobotCentricMode));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
+        final Trigger robotCentricModeTrigger = new Trigger(() -> simRobotCentricMode);
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
+            .or(robotCentricModeTrigger)
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
-            .onTrue(Commands.print("Sim: Auto-align climb placeholder"));
+            .onTrue(simSubsystemCommands.autoAlignClimbCommand());
         simButton(Constants.SimControllerButtons.kClimb)
             .onTrue(hanger.climbCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
@@ -267,6 +277,15 @@ public class RobotContainer {
 
     private boolean isDriverControllerConnected() {
         return DriverStation.isJoystickConnected(driver.getHID().getPort());
+    }
+
+    private void toggleSimRobotCentricMode() {
+        simRobotCentricMode = !simRobotCentricMode;
+        SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
+        DriverStation.reportWarning(
+            "Sim Robot Centric Mode: " + (simRobotCentricMode ? "Robot-Centric" : "Field-Centric"),
+            false
+        );
     }
 
     private Trigger driverRightTrigger() {
