@@ -152,17 +152,21 @@ public class Intake extends SubsystemBase {
     }
 
     public void set(Position position) {
+        System.out.println("Setting intake position to " + position);
         pivotMotor.setControl(
             pivotMotionMagicRequest
                 .withPosition(position.angle())
         );
+        System.out.println("Intake position set");
     }
 
     public void set(Speed speed) {
+        System.out.println("Setting intake speed to "  + speed);
         rollerMotor.setControl(
             rollerVoltageRequest
                 .withOutput(speed.voltage())
         );
+        System.out.println("Intake speed set");
     }
 
     public Command intakeCommand() {
