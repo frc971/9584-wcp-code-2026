@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -13,9 +15,12 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.motorcontrol.Talon;
@@ -30,8 +35,8 @@ import frc.robot.utils.simulation.SimSwerveConstants;
 
 import org.littletonrobotics.junction.Logger;
 
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Seconds;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -46,11 +51,15 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private boolean m_hasAppliedOperatorPerspective = false;
 
     private static final double kSimLoopPeriod = 0.005;
+    private static final double kBumpTiltThresholdDegrees = 5.0;
     private Notifier m_simNotifier = null;
     private static double m_lastSimTime;
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
+
+    private final StatusSignal<Angle> pitchSignal;
+    private final StatusSignal<Angle> rollSignal;
 
     public Swerve() {
         super(
@@ -60,6 +69,11 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             VecBuilder.fill(0.1, 0.1, 0.1),
             getSwerveModuleConstants()
         );
+
+        pitchSignal = getPigeon2().getPitch();
+        rollSignal = getPigeon2().getRoll();
+        BaseStatusSignal.setUpdateFrequencyForAll(50.0, pitchSignal, rollSignal);
+        BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
         configureAutoBuilder();
         if (Utils.isSimulation()) {
@@ -154,14 +168,50 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
             Logger.recordOutput("Drive/Pose", simPose);
-          } else {
+        } else {
             Logger.recordOutput("Drive/Pose", getState().Pose);
-          }
-      
+        }
+
+        BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
+
+        Logger.recordOutput("Drive/Pose3d", getPose3d());
+        Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
+        Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
+        Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
+        Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
+        Logger.recordOutput("Drive/OnBump", isRobotOnBump());
+        
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
         Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
         Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
+    }
+
+    public double getPitchDegrees() {
+        return pitchSignal.getValue().in(Degrees);
+    }
+
+    public double getRollDegrees() {
+        return rollSignal.getValue().in(Degrees);
+    }
+
+    public double getTiltMagnitudeDegrees() {
+        return Math.hypot(getPitchDegrees(), getRollDegrees());
+    }
+
+    public Rotation3d getRobotRotation3d() {
+        Rotation3d pigeonRotation = getPigeon2().getRotation3d();
+        double yawRadians = getState().Pose.getRotation().getRadians();
+        return new Rotation3d(pigeonRotation.getX(), pigeonRotation.getY(), yawRadians);
+    }
+
+    public Pose3d getPose3d() {
+        Pose2d pose2d = getState().Pose;
+        return new Pose3d(pose2d.getX(), pose2d.getY(), 0.0, getRobotRotation3d());
+    }
+
+    public boolean isRobotOnBump() {
+        return getTiltMagnitudeDegrees() >= kBumpTiltThresholdDegrees;
     }
 
     private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;

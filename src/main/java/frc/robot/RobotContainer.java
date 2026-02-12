@@ -60,7 +60,10 @@ public class RobotContainer {
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
 
-    private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(Driving.kMaxSpeed.in(MetersPerSecond));
+    private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(
+        Driving.kMaxSpeed.in(MetersPerSecond),
+        swerve::getRobotRotation3d
+    );
     
     private final CommandXboxController driver = new CommandXboxController(0);
     private final CommandJoystick simController = new CommandJoystick(2);
