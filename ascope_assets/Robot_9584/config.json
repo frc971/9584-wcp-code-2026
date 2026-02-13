@@ -1,18 +1,15 @@
 {
-  "name": "Team 9584 Robot",
+  "name": "9584 Robot",
   "isFTC": false,
-  "disableSimplification": false,
   "rotations": [
     {
-      "axis": "z",
-      "degrees": 0
+      "axis": "x",
+      "degrees": 180
     }
   ],
   "position": [
-    0.0,
-    0.0,
-    0.0
-  ],
-  "cameras": [],
-  "components": []
+    0,
+    0,
+    0
+  ]
 }
