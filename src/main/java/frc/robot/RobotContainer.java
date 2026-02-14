@@ -140,9 +140,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
         // Extend the hanger (hooks) to be able to reach the L1 bar
-        NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGING));
+        NamedCommands.registerCommand("Hanger Extend Command", subsystemCommands.climbWithDriveCommand());
         // Retract the hanger to hook onto the L1 bar
-        NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HUNG));
+        NamedCommands.registerCommand("Hanger Hook Command", subsystemCommands.unclimbWithDriveCommand());
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -279,8 +279,8 @@ public class RobotContainer {
         driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         driver.start().onTrue(subsystemCommands.autoAlignClimbCommand());
 
-        driver.povUp().onTrue(hanger.positionCommand(Hanger.Position.HANGING));
-        driver.povDown().onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+        driver.povUp().onTrue(subsystemCommands.climbWithDriveCommand());
+        driver.povDown().onTrue(subsystemCommands.unclimbWithDriveCommand());
     }
 
     private void configureSimBindings() {
@@ -330,9 +330,9 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .onTrue(simSubsystemCommands.autoAlignClimbCommand());
         simButton(Constants.SimControllerButtons.kClimb)
-            .onTrue(hanger.climbCommand());
+            .onTrue(subsystemCommands.climbWithDriveCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
-            .onTrue(hanger.unclimbCommand());
+            .onTrue(subsystemCommands.unclimbWithDriveCommand());
         simButton(Constants.SimControllerButtons.kAimAndShoot)
             .or(driverRightTrigger())
             .whileTrue(simSubsystemCommands.aimAndShoot());
@@ -347,10 +347,10 @@ public class RobotContainer {
             .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         simButton(Constants.SimControllerButtons.kHangerUp)
             .or(driverPovUp())
-            .onTrue(hanger.positionCommand(Hanger.Position.HANGING));
+            .onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         simButton(Constants.SimControllerButtons.kHangerDown)
             .or(driverPovDown())
-            .onTrue(hanger.positionCommand(Hanger.Position.HUNG));
+            .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
     }
 
     private double getSimForwardInput() {
