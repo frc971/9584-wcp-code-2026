@@ -278,8 +278,8 @@ public class RobotContainer {
         driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         driver.start().onTrue(subsystemCommands.autoAlignClimbCommand());
 
-        driver.povUp().onTrue(subsystemCommands.climbWithDriveCommand());
-        driver.povDown().onTrue(subsystemCommands.unclimbWithDriveCommand());
+        driver.povUp().onTrue(hanger.climbCommand());
+        driver.povDown().onTrue(hanger.unclimbCommand());
     }
 
     private void configureSimBindings() {
@@ -329,9 +329,9 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .onTrue(simSubsystemCommands.autoAlignClimbCommand());
         simButton(Constants.SimControllerButtons.kClimb)
-            .onTrue(subsystemCommands.climbWithDriveCommand());
+            .onTrue(hanger.climbCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
-            .onTrue(subsystemCommands.unclimbWithDriveCommand());
+            .onTrue(hanger.unclimbCommand());
         simButton(Constants.SimControllerButtons.kAimAndShoot)
             .or(driverRightTrigger())
             .whileTrue(simSubsystemCommands.aimAndShoot());
