@@ -3,7 +3,6 @@ package frc.robot.commands;
 import java.util.Set;
 import java.util.function.DoubleSupplier;
 
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -18,9 +17,6 @@ import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
 
 public final class SubsystemCommands {
-    private static final double kClimbDriveSpeedMetersPerSecond = 0.35;
-    private static final double kClimbDriveDurationSeconds = 0.6;
-
     private final Swerve swerve;
     private final Intake intake;
     private final Floor floor;
@@ -31,9 +27,6 @@ public final class SubsystemCommands {
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
-
-    private final SwerveRequest.RobotCentric climbRobotRequest = new SwerveRequest.RobotCentric();
-    private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
 
     public SubsystemCommands(
         Swerve swerve,
@@ -117,25 +110,6 @@ public final class SubsystemCommands {
             Set.of(swerve)
         );
     }
-
-    public Command climbWithDriveCommand() {
-        System.out.println("=========Climbing=========");
-        return Commands.sequence(
-            hanger.positionCommand(Hanger.Position.HANGER_EXTEND),
-            driveForwardForClimb(),
-            hanger.positionCommand(Hanger.Position.HANGER_HOME)
-        );
-    }
-
-    public Command unclimbWithDriveCommand() {
-        System.out.println("=========UnClimbing========");
-        return Commands.sequence(
-            hanger.positionCommand(Hanger.Position.HANGER_EXTEND),
-            driveBackwardForClimb(),
-            hanger.positionCommand(Hanger.Position.HANGER_HOME)
-        );
-    }
-    
     private Command feed() {
         System.out.println("=========Feed========");
         return Commands.sequence(
@@ -146,26 +120,5 @@ public final class SubsystemCommands {
                     .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
             )
         );
-    }
-
-    private Command driveForwardForClimb() {
-        return driveRobotForClimb(kClimbDriveSpeedMetersPerSecond);
-    }
-
-    private Command driveBackwardForClimb() {
-        return driveRobotForClimb(-kClimbDriveSpeedMetersPerSecond);
-    }
-
-    private Command driveRobotForClimb(double velocityXMetersPerSecond) {
-        return Commands.runEnd(
-            () -> swerve.setControl(
-                climbRobotRequest
-                    .withVelocityX(velocityXMetersPerSecond)
-                    .withVelocityY(0.0)
-                    .withRotationalRate(0.0)
-            ),
-            () -> swerve.setControl(idleRequest),
-            swerve
-        ).withTimeout(kClimbDriveDurationSeconds);
     }
 }
