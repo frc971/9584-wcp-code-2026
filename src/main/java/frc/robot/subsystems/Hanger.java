@@ -122,7 +122,7 @@ public class Hanger extends SubsystemBase {
             .andThen(Commands.print("Hanger position set"));
     }
 
-    public Command homingCommand() {
+    public Command homingHopperCommand() {
         return Commands.sequence(
             runOnce(() -> setPercentOutput(-0.05)),
             Commands.waitUntil(() -> motor.getSupplyCurrent().getValue().in(Amps) > 0.4),

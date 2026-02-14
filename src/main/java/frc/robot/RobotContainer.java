@@ -270,7 +270,7 @@ public class RobotContainer {
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
             .onTrue(intake.homingCommand())
-            .onTrue(hanger.homingCommand());
+            .onTrue(hanger.homingHopperCommand());
 
         driver.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
         driver.rightStick().whileTrue(subsystemCommands.autoAim());
