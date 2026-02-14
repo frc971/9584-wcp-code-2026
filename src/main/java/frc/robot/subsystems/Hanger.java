@@ -38,8 +38,8 @@ public class Hanger extends SubsystemBase {
     public enum Position {
         HOMED(0),
         EXTEND_HOPPER(2),
-        HANGING(6),
-        HUNG(0.2);
+        HANGER_EXTEND(6),
+        HANGER_HOME(0.2);
 
         private final double inches;
 
@@ -120,14 +120,6 @@ public class Hanger extends SubsystemBase {
             })
             .andThen(Commands.waitUntil(this::isExtensionWithinTolerance))
             .andThen(Commands.print("Hanger position set"));
-    }
-
-    public Command climbCommand() {
-        return positionCommand(Position.HANGING);
-    }
-
-    public Command unclimbCommand() {
-        return positionCommand(Position.HUNG);
     }
 
     public Command homingCommand() {
