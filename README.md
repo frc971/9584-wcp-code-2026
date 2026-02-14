@@ -6,6 +6,8 @@ The project is based on one of CTRE's [Phoenix 6 example projects](https://githu
 
 **Simulation**
 We use [MapleSim](https://github.com/Shenzhen-Robotics-Alliance/maple-sim) with [AdvantageScope](https://docs.advantagescope.org/) for simulation.
+Using xbox controller to control in the simulation
+
 
 To start up simulation:
 1. Install MapleSim and AdvantageScope from their respective websites.
