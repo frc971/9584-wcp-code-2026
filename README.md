@@ -13,4 +13,6 @@ To start up simulation:
 3. Open AdvantageScope and connect to the simulator. 
     * On Windows, either do File > Connect To Simulator > Default: NetworkTables 4 or press Ctrl+Shift+K to connect.
     * On Mac, press Ctrl+Shift+K to connect.
-4. Once connected, in the sidebar, click on the DriveState dropdown. Click and drag Pose into the Poses box on the bottom. The robot should show up on the blue starting line next to the blue alliance left ramp.
+4. Once connected, in the sidebar expand `Pose` and drag `robotPose` into the Poses box at the bottom so the robot appears on the field.
+5. In the AdvantageScope tree, expand `AdvantageKit > RealOutputs > Fuel Simulation` and drag `Fuels` into a graph or table to monitor simulated fuel levels alongside the pose.
+6. Open `App > AdvantageScope` (left top corner) and set `Use Custom Assets Folder` to `~/9584-wcp-code-2026/ascope_assets` so the custom 9584 robot model loads in the viewer.
