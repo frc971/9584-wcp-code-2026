@@ -6,15 +6,18 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.MetersPerSecond;
-
-import java.util.Optional;
-
-import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+
+import java.util.Optional;
+
+import org.littletonrobotics.junction.Logger;
+
+import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -38,7 +41,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -50,9 +52,6 @@ import frc.robot.subsystems.Swerve;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import org.littletonrobotics.junction.Logger;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -140,9 +139,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
         // Extend the hanger (hooks) to be able to reach the L1 bar
-        NamedCommands.registerCommand("Hanger Extend Command", subsystemCommands.climbWithDriveCommand());
+        NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar
-        NamedCommands.registerCommand("Hanger Hook Command", subsystemCommands.unclimbWithDriveCommand());
+        NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
