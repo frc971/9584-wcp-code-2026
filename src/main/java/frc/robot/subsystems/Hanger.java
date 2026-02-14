@@ -122,6 +122,14 @@ public class Hanger extends SubsystemBase {
             .andThen(Commands.print("Hanger position set"));
     }
 
+    public Command climbCommand() {
+        return positionCommand(Position.HANGER_EXTEND);
+    }
+
+    public Command unclimbCommand() {
+        return positionCommand(Position.HANGER_HOME);
+    }
+
     public Command homingHopperCommand() {
         return Commands.sequence(
             runOnce(() -> setPercentOutput(-0.05)),
