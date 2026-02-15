@@ -115,6 +115,8 @@ public class RobotContainer {
         this::getSimLeftInput
     );
 
+    private ManualDriveCommand manualDriveCommand;
+
     private SendableChooser<Command> autoChooser;
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -271,15 +273,24 @@ public class RobotContainer {
             .onTrue(intake.homingCommand())
             .onTrue(hanger.homingHopperCommand());
 
-        driver.rightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-        driver.rightStick().whileTrue(subsystemCommands.autoAim());
-        driver.rightBumper().whileTrue(subsystemCommands.shootManually());
-        driver.leftTrigger().whileTrue(intake.intakeCommand());
-        driver.leftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
-        driver.start().onTrue(subsystemCommands.autoAlignClimbCommand());
+        driverLeftTrigger().whileTrue(intake.intakeCommand());
+        driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
-        driver.povUp().onTrue(hanger.climbCommand());
-        driver.povDown().onTrue(hanger.unclimbCommand());
+        driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+        driverRightBumper().whileTrue(subsystemCommands.shootManually());
+
+        driverRightStickButton().whileTrue(subsystemCommands.autoAim());
+        driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
+        driverBButton().onTrue(Commands.runOnce(() -> {
+            if (manualDriveCommand != null) {
+                manualDriveCommand.toggleRobotCentricMode();
+            }
+        }));
+
+        driverPovUp().onTrue(hanger.climbCommand());
+        driverPovDown().onTrue(hanger.unclimbCommand());
+        driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
+        driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
     }
 
     private void configureSimBindings() {
@@ -319,18 +330,20 @@ public class RobotContainer {
                 }
             }));
         simButton(Constants.SimControllerButtons.kRobotCentricMode)
+            .or(driverBButton())
             .onTrue(Commands.runOnce(this::toggleSimRobotCentricMode));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
-        final Trigger robotCentricModeTrigger = new Trigger(() -> simRobotCentricMode);
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
-            .or(robotCentricModeTrigger)
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
+            .or(driverLeftStickButton())
             .onTrue(simSubsystemCommands.autoAlignClimbCommand());
         simButton(Constants.SimControllerButtons.kClimb)
+            .or(driverPovUp())
             .onTrue(hanger.climbCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
+            .or(driverPovDown())
             .onTrue(hanger.unclimbCommand());
         simButton(Constants.SimControllerButtons.kAimAndShoot)
             .or(driverRightTrigger())
@@ -345,10 +358,10 @@ public class RobotContainer {
             .or(driverLeftBumper())
             .onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
         simButton(Constants.SimControllerButtons.kHangerUp)
-            .or(driverPovUp())
+            .or(driverPovLeft())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         simButton(Constants.SimControllerButtons.kHangerDown)
-            .or(driverPovDown())
+            .or(driverPovRight())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
     }
 
@@ -419,12 +432,28 @@ public class RobotContainer {
         return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kRightStick.value));
     }
 
+    private Trigger driverLeftStickButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kLeftStick.value));
+    }
+
+    private Trigger driverBButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kB.value));
+    }
+
     private Trigger driverPovUp() {
         return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 0);
     }
 
     private Trigger driverPovDown() {
         return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 180);
+    }
+
+    private Trigger driverPovLeft() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 270);
+    }
+
+    private Trigger driverPovRight() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getPOV() == 90);
     }
 
     private boolean isSimButtonAvailable(int buttonNumber) {
@@ -440,17 +469,13 @@ public class RobotContainer {
     }
 
     private void configureManualDriveBindings() {
-        final ManualDriveCommand manualDriveCommand = new ManualDriveCommand(
+        manualDriveCommand = new ManualDriveCommand(
             swerve, 
             () -> -driver.getLeftY(), 
             () -> -driver.getLeftX(), 
             () -> -driver.getRightX()
         );
         swerve.setDefaultCommand(manualDriveCommand);
-        driver.a().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.k180deg)));
-        driver.b().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.kCW_90deg)));
-        driver.x().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.kCCW_90deg)));
-        driver.y().onTrue(Commands.runOnce(() -> manualDriveCommand.setLockedHeading(Rotation2d.kZero)));
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
     }
 
