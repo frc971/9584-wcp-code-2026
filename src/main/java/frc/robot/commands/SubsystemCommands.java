@@ -107,6 +107,15 @@ public final class SubsystemCommands {
             .handleInterrupt(() -> shooter.stop());
     }
 
+    // move the hanger to hanging, auto align to tower, then move the hanger to hung
+    public Command climbWithAutoAlign() {
+        return Commands.sequence(
+            Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_EXTEND)),
+            autoAlignClimbCommand(),
+            Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_HOME))
+        )
+    }
+
     public Command autoAlignClimbCommand() {
         System.out.println("=========Auto Align Climbing=========");
         return Commands.defer(
