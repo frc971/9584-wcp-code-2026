@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
@@ -73,6 +74,7 @@ public class Intake extends SubsystemBase {
     private final VoltageOut pivotVoltageRequest = new VoltageOut(0);
     private final MotionMagicVoltage pivotMotionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
+    private Speed currentSpeed = Speed.STOP;
 
     private boolean isHomed = false;
 
@@ -81,6 +83,8 @@ public class Intake extends SubsystemBase {
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
+        SimDeviceRegistrar.registerTalonFX(pivotMotor);
+        SimDeviceRegistrar.registerTalonFX(rollerMotor);
         SmartDashboard.putData(this);
     }
 
@@ -149,26 +153,40 @@ public class Intake extends SubsystemBase {
     }
 
     public void set(Position position) {
+        System.out.println("Setting intake position to " + position);
         pivotMotor.setControl(
             pivotMotionMagicRequest
                 .withPosition(position.angle())
         );
+        System.out.println("Intake position set");
     }
 
     public void set(Speed speed) {
+        System.out.println("Setting intake speed to "  + speed);
+        currentSpeed = speed;
         rollerMotor.setControl(
             rollerVoltageRequest
                 .withOutput(speed.voltage())
         );
+        System.out.println("Intake speed set");
+    }
+
+    public boolean isIntaking() {
+        return currentSpeed == Speed.INTAKE;
     }
 
     public Command intakeCommand() {
+        System.out.println("========Intake Command");
         return startEnd(
             () -> {
+                System.out.println("Starting Intake");
                 set(Position.INTAKE);
                 set(Speed.INTAKE);
             },
-            () -> set(Speed.STOP)
+            () -> {
+                System.out.println("Stopping Intake");
+                set(Speed.STOP);
+            }
         );
     }
 

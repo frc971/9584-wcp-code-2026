@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Floor extends SubsystemBase {
     public enum Speed {
@@ -56,6 +57,7 @@ public class Floor extends SubsystemBase {
             );
 
         motor.getConfigurator().apply(config);
+        SimDeviceRegistrar.registerTalonFX(motor);
         SmartDashboard.putData(this);
     }
 
@@ -67,7 +69,8 @@ public class Floor extends SubsystemBase {
     }
 
     public Command feedCommand() {
-        return startEnd(() -> set(Speed.FEED), () -> set(Speed.STOP));
+        System.out.println("================Floor Feed Command");
+        return startEnd(() -> {System.out.println("Starting floor feed"); set(Speed.FEED);}, () -> {System.out.println("stopping floor feed"); set(Speed.STOP);});
     }
 
     @Override

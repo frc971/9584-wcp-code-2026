@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
+import frc.robot.sim.SimDeviceRegistrar;
 
 public class Hanger extends SubsystemBase {
     public enum Position {
@@ -91,6 +92,7 @@ public class Hanger extends SubsystemBase {
             );
 
         motor.getConfigurator().apply(config);
+        SimDeviceRegistrar.registerTalonFX(motor);
         SmartDashboard.putData(this);
     }
 
@@ -109,8 +111,23 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command positionCommand(Position position) {
-        return runOnce(() -> set(position))
-            .andThen(Commands.waitUntil(this::isExtensionWithinTolerance));
+        System.out.println("====Hanger Position Command");
+        return runOnce(() -> 
+            {
+                System.out.println("Setting hanger position to " + position);
+                set(position);
+
+            })
+            .andThen(Commands.waitUntil(this::isExtensionWithinTolerance))
+            .andThen(Commands.print("Hanger position set"));
+    }
+
+    public Command climbCommand() {
+        return positionCommand(Position.HANGING);
+    }
+
+    public Command unclimbCommand() {
+        return positionCommand(Position.HUNG);
     }
 
     public Command homingCommand() {

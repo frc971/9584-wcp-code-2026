@@ -3,21 +3,30 @@ package frc.robot.subsystems;
 import java.util.List;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import choreo.Choreo.TrajectoryLogger;
-import choreo.auto.AutoFactory;
-import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.motorcontrol.Talon;
+import edu.wpi.first.wpilibj.Notifier;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
@@ -25,6 +34,13 @@ import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.LimelightHelpers;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
+import frc.robot.utils.simulation.SimSwerveConstants;
+
+import org.littletonrobotics.junction.Logger;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Seconds;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -38,11 +54,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
-    /** Swerve request to apply during field-centric path following */
-    private final SwerveRequest.ApplyFieldSpeeds pathFieldSpeedsRequest = new SwerveRequest.ApplyFieldSpeeds();
-    private final PIDController pathXController = new PIDController(10, 0, 0);
-    private final PIDController pathYController = new PIDController(10, 0, 0);
-    private final PIDController pathThetaController = new PIDController(7, 0, 0);
+    private static final double kSimLoopPeriod = 0.005;
+    private static final double kBumpTiltThresholdDegrees = 5.0;
+    private Notifier m_simNotifier = null;
+    private static double m_lastSimTime;
 
     private VisionSubsystem vision;
     //uses this to be able to lock angle of drivetrain a certain way
@@ -54,19 +69,47 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
 
+    private final StatusSignal<Angle> pitchSignal;
+    private final StatusSignal<Angle> rollSignal;
+
     public Swerve() {
         super(
             TunerConstants.DrivetrainConstants, 
             0,
             VecBuilder.fill(0.1, 0.1, 0.1),
             VecBuilder.fill(0.1, 0.1, 0.1),
-            TunerConstants.FrontLeft, 
-            TunerConstants.FrontRight, 
-            TunerConstants.BackLeft, 
-            TunerConstants.BackRight
+            getSwerveModuleConstants()
         );
+
+        pitchSignal = getPigeon2().getPitch();
+        rollSignal = getPigeon2().getRoll();
+        BaseStatusSignal.setUpdateFrequencyForAll(50.0, pitchSignal, rollSignal);
+        BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
+
         configureAutoBuilder();
+        if (Utils.isSimulation()) {
+            startSimThread();
+        }
     }
+
+    // Get swerve module constants as an array of constants
+    private static SwerveModuleConstants<?, ?, ?>[] getSwerveModuleConstants() {
+    SwerveModuleConstants<?, ?, ?>[] modules =
+        new SwerveModuleConstants[] {
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight
+        };
+    
+    // Regulate swerve module constants for simulation if in sim
+    if (Utils.isSimulation()) {
+        return MapleSimSwerveDrivetrain
+            .regulateModuleConstantsForSimulation(modules);
+    }
+
+    return modules;
+}
 
     private void configureAutoBuilder() {
     try {
@@ -98,33 +141,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
           "Failed to load PathPlanner config and configure AutoBuilder", ex.getStackTrace());
     }
   }
-
-    /**
-     * Creates a new auto factory for this drivetrain.
-     *
-     * @return AutoFactory for this drivetrain
-     */
-    public AutoFactory createAutoFactory() {
-        return createAutoFactory((sample, isStart) -> {});
-    }
-
-    /**
-     * Creates a new auto factory for this drivetrain with the given
-     * trajectory logger.
-     *
-     * @param trajLogger Logger for the trajectory
-     * @return AutoFactory for this drivetrain
-     */
-    public AutoFactory createAutoFactory(TrajectoryLogger<SwerveSample> trajLogger) {
-        return new AutoFactory(
-            () -> getState().Pose,
-            this::resetPose,
-            this::followPath,
-            true,
-            this,
-            trajLogger
-        );
-    }
 
     /**
      * Returns a command that applies the specified control request to this swerve drivetrain.
@@ -230,6 +246,96 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 );
             }
         }
+        if (mapleSimSwerveDrivetrain != null) {
+            Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
+            super.resetPose(simPose);
+            Logger.recordOutput("Drive/Pose", simPose);
+        } else {
+            Logger.recordOutput("Drive/Pose", getState().Pose);
+        }
+
+        BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
+
+        Logger.recordOutput("Drive/Pose3d", getPose3d());
+        Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
+        Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
+        Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
+        Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
+        Logger.recordOutput("Drive/OnBump", isRobotOnBump());
+        
+        Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
+        Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
+        Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
+        Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
+    }
+
+    public double getPitchDegrees() {
+        return pitchSignal.getValue().in(Degrees);
+    }
+
+    public double getRollDegrees() {
+        return rollSignal.getValue().in(Degrees);
+    }
+
+    public double getTiltMagnitudeDegrees() {
+        return Math.hypot(getPitchDegrees(), getRollDegrees());
+    }
+
+    public Rotation3d getRobotRotation3d() {
+        Rotation3d pigeonRotation = getPigeon2().getRotation3d();
+        double yawRadians = getState().Pose.getRotation().getRadians();
+        return new Rotation3d(pigeonRotation.getX(), pigeonRotation.getY(), yawRadians);
+    }
+
+    public Pose3d getPose3d() {
+        Pose2d pose2d = getState().Pose;
+        return new Pose3d(pose2d.getX(), pose2d.getY(), 0.0, getRobotRotation3d());
+    }
+
+    public boolean isRobotOnBump() {
+        return getTiltMagnitudeDegrees() >= kBumpTiltThresholdDegrees;
+    }
+
+    private MapleSimSwerveDrivetrain mapleSimSwerveDrivetrain = null;
+
+    private void startSimThread() {
+        mapleSimSwerveDrivetrain =
+        new MapleSimSwerveDrivetrain(
+            Seconds.of(kSimLoopPeriod),
+            SimSwerveConstants.ROBOT_MASS,
+            SimSwerveConstants.BUMPER_LENGTH_X,
+            SimSwerveConstants.BUMPER_LENGTH_Y,
+            SimSwerveConstants.DRIVE_MOTOR_WHEEL,
+            SimSwerveConstants.STEER_MOTOR_WHEEL,
+            SimSwerveConstants.WHEEL_COF,
+            getModuleLocations(),
+            getPigeon2(),
+            getModules(),
+            TunerConstants.FrontLeft,
+            TunerConstants.FrontRight,
+            TunerConstants.BackLeft,
+            TunerConstants.BackRight);
+    /* Run simulation at a faster rate so PID gains behave more reasonably */
+    m_simNotifier = new Notifier(mapleSimSwerveDrivetrain::update);
+    m_simNotifier.startPeriodic(kSimLoopPeriod);
+    
+    // Initialize simulation pose to inside the field on black line for blue alliance
+    double blueAllianceInitialSimX = 3.586;
+    double blueAllianceInitialSimY = 5.779;
+
+    Pose2d initialSimPose = new Pose2d(blueAllianceInitialSimX, blueAllianceInitialSimY, new Rotation2d(3.121));
+    mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
+    super.resetPose(initialSimPose);
+    }
+
+    @Override
+    public void resetPose(Pose2d pose) {
+        if (this.mapleSimSwerveDrivetrain != null) {
+        mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(pose);
+        // Push one sim update instead of blocking the main loop for 0.1s
+        mapleSimSwerveDrivetrain.update();
+        }
+        super.resetPose(pose);
     }
 
     /**
@@ -255,7 +361,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
      * @param visionRobotPoseMeters The pose of the robot as measured by the vision camera.
      * @param timestampSeconds The timestamp of the vision measurement in seconds.
      * @param visionMeasurementStdDevs Standard deviations of the vision pose measurement
-     *     in the form [x, y, theta]ᵀ, with units in meters and radians.
+     *     in the form [x, y, theta]t, with units in meters and radians.
      */
     @Override
     public void addVisionMeasurement(

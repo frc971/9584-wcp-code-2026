@@ -6,24 +6,38 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Volts;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.sim.PhysicsSim;
+import frc.robot.utils.simulation.FuelSim;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
  * this project, you must also update the Main.java file in the project.
  */
-public class Robot extends TimedRobot {
+public class Robot extends LoggedRobot {
     private final RobotContainer m_robotContainer;
+    private Command m_autonomousCommand;
     
     /**
      * This function is run when the robot is first started up and should be used for any
      * initialization code.
      */
     public Robot() {
+        configureLogging();
         // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
         // autonomous chooser on the dashboard.
         m_robotContainer = new RobotContainer();
@@ -40,10 +54,82 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
+        if (RobotBase.isSimulation()) {
+            PhysicsSim.getInstance().run();
+        }
         // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
+    }
+
+    @Override
+    public void disabledInit() {
+        m_autonomousCommand = null;
+    }
+
+    @Override
+    public void disabledPeriodic() {}
+
+    @Override
+    public void autonomousInit() {
+        if (RobotBase.isSimulation()) {
+            m_robotContainer.resetFuelSim();
+        }
+        m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+        if (m_autonomousCommand != null) {
+            CommandScheduler.getInstance().schedule(m_autonomousCommand);;
+        }
+    }
+
+    @Override
+    public void autonomousPeriodic() {}
+
+    @Override
+    public void teleopInit() {
+        if (m_autonomousCommand != null) {
+            m_autonomousCommand.cancel();
+        }
+    }
+
+    //TODO : Em , todo, em yeah, :)
+    @Override
+    public void teleopPeriodic() {}
+
+    @Override
+    public void testInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        FuelSim.getInstance().updateSim();
+    }
+
+    @Override
+    public void robotInit() {
+        if (RobotBase.isSimulation()) {
+            DriverStation.silenceJoystickConnectionWarning(true);
+        }
+    }
+
+    private void configureLogging() {
+        Logger.recordMetadata("ProjectName", "9584-wcp-code-2026");
+        Logger.recordMetadata("Robot", RobotBase.isReal() ? "Real" : "Simulation");
+
+        if (RobotBase.isReal()) {
+            Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+        } else {
+            try {
+                Files.createDirectories(Path.of("logs"));
+            } catch (IOException ex) {
+                DriverStation.reportError("Failed to create logs directory: " + ex.getMessage(), false);
+            }
+            Logger.addDataReceiver(new WPILOGWriter("logs/"));
+        }
+
+        Logger.addDataReceiver(new NT4Publisher());
+        Logger.start();
     }
 }

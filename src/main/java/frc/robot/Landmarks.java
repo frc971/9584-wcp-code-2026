@@ -6,6 +6,8 @@ import java.util.Optional;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose3d;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -52,5 +54,11 @@ public class Landmarks {
         return maybePose
             .map(pose3d -> pose3d.getTranslation().toTranslation2d())
             .orElse(new Translation2d(0, 0));
+    public static Pose2d climbPose() {
+        final Optional<Alliance> alliance = DriverStation.getAlliance();
+        if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
+            return Constants.ClimbAlignment.kBlueAllianceTargetPose;
+        }
+        return Constants.ClimbAlignment.kRedAllianceTargetPose;
     }
 }
