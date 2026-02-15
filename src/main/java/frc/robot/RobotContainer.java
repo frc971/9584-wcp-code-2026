@@ -342,13 +342,13 @@ public class RobotContainer {
             .whileTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .or(driverLeftStickButton())
-            .onTrue(simSubsystemCommands.autoAlignClimbCommand());
+            .onTrue(simSubsystemCommands.climbWithAutoAlign());
         simButton(Constants.SimControllerButtons.kClimb)
             .or(driverPovUp())
-            .onTrue(hanger.climbCommand());
+            .onTrue(simSubsystemCommands.climbWithDriveCommand());
         simButton(Constants.SimControllerButtons.kUnclimb)
             .or(driverPovDown())
-            .onTrue(hanger.unclimbCommand());
+            .onTrue(simSubsystemCommands.unClimbWithDriveCommand());
         simButton(Constants.SimControllerButtons.kAimAndShoot)
             .or(driverRightTrigger())
             .whileTrue(simSubsystemCommands.aimAndShoot());

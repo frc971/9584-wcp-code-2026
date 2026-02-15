@@ -113,7 +113,7 @@ public final class SubsystemCommands {
             Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_EXTEND)),
             autoAlignClimbCommand(),
             Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_HOME))
-        )
+        );
     }
 
     public Command autoAlignClimbCommand() {
