@@ -5,6 +5,8 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import frc.robot.Constants;
 import frc.robot.Landmarks;
@@ -15,6 +17,7 @@ import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.Hanger.Position;
 
 public final class SubsystemCommands {
     private final Swerve swerve;
@@ -27,6 +30,11 @@ public final class SubsystemCommands {
 
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
+
+    private static final double kClimbDriveSpeedMetersPerSecond = 0.35;
+    private static final double kClimbDriveDurationSeconds = 0.6;
+
+    private final SwerveRequest.RobotCentric climRobotCentricRequest = new SwerveRequest.RobotCentric();
 
     public SubsystemCommands(
         Swerve swerve,
@@ -110,6 +118,39 @@ public final class SubsystemCommands {
             Set.of(swerve)
         );
     }
+
+    public Command climbWithDriveCommand() {
+        return Commands.sequence(
+            Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}),
+            Commands.runOnce(() ->{
+                swerve.setControl(
+                    climRobotCentricRequest
+                        .withVelocityX(kClimbDriveSpeedMetersPerSecond)
+                        .withVelocityY(0.0)
+                        .withRotationalRate(0.0)
+                );
+            }),
+            Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_HOME);})
+        )
+        .withTimeout(kClimbDriveDurationSeconds);
+    }
+
+    public Command unClimbWithDriveCommand() {
+        return Commands.sequence(
+            Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}), //extend hanger
+            Commands.runOnce(() ->{
+                swerve.setControl(
+                    climRobotCentricRequest
+                        .withVelocityX(-kClimbDriveSpeedMetersPerSecond) //moving away from tower
+                        .withVelocityY(0.0)
+                        .withRotationalRate(0.0)
+                );
+            }),
+            Commands.runOnce(() -> {hanger.homingHopperCommand();}) //home hanger (will set to extend hopper)
+        )
+        .withTimeout(kClimbDriveDurationSeconds);
+    }
+
     private Command feed() {
         System.out.println("=========Feed========");
         return Commands.sequence(
