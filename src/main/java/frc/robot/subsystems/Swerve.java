@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.Utils;
@@ -21,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.LimelightHelpers;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
@@ -40,6 +43,13 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private final PIDController pathXController = new PIDController(10, 0, 0);
     private final PIDController pathYController = new PIDController(10, 0, 0);
     private final PIDController pathThetaController = new PIDController(7, 0, 0);
+
+    private VisionSubsystem vision;
+    //uses this to be able to lock angle of drivetrain a certain way
+    private final SwerveRequest.FieldCentricFacingAngle faceAngleRequest =
+    new SwerveRequest.FieldCentricFacingAngle()
+        .withDeadband(0.02)
+        .withRotationalDeadband(0.01);
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
@@ -126,6 +136,34 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         return run(() -> this.setControl(requestSupplier.get()));
     }
 
+    //for shooting on the move
+    public Pose2d getPose() {
+        return getState().Pose;
+      }
+  
+      public void setVision(VisionSubsystem vision) {
+        this.vision = vision;
+      }
+  
+      //now we can set the angle that we move at both when we are moving and when we are rotating
+      public void driveFacingAngle(
+        double vxMetersPerSecond,
+        double vyMetersPerSecond,
+        Rotation2d targetAngle
+        ) {
+          setControl(
+            faceAngleRequest
+              .withVelocityX(vxMetersPerSecond)
+              .withVelocityY(vyMetersPerSecond)
+              .withTargetDirection(targetAngle)
+          );
+      }
+  
+      //if robot isnt moving wed use this instead
+      public void lockHeading(Rotation2d targetAngle) {
+        driveFacingAngle(0.0, 0.0, targetAngle);
+      }
+
     /**
      * Follows the given field-centric path sample with PID.
      *
@@ -175,6 +213,22 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
                 }
                 m_hasAppliedOperatorPerspective = true;
             });
+        }
+
+        if (vision != null) {
+            double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
+            
+            // Get all valid estimates from all Limelights
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega);
+            
+            // Add each estimate to the pose estimator with individual std devs
+            for (LimelightHelpers.PoseEstimate est : estimates) {
+                addVisionMeasurement(
+                    est.pose,
+                    est.timestampSeconds,
+                    vision.getVisionStdDevsForEstimate(est)
+                );
+            }
         }
     }
 
