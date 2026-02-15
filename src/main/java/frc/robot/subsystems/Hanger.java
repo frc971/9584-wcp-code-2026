@@ -38,8 +38,8 @@ public class Hanger extends SubsystemBase {
     public enum Position {
         HOMED(0),
         EXTEND_HOPPER(2),
-        HANGING(6),
-        HUNG(0.2);
+        HANGER_EXTEND(6),
+        HANGER_HOME(0.2);
 
         private final double inches;
 
@@ -123,14 +123,14 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command climbCommand() {
-        return positionCommand(Position.HANGING);
+        return positionCommand(Position.HANGER_EXTEND);
     }
 
     public Command unclimbCommand() {
-        return positionCommand(Position.HUNG);
+        return positionCommand(Position.HANGER_HOME);
     }
 
-    public Command homingCommand() {
+    public Command homingHopperCommand() {
         return Commands.sequence(
             runOnce(() -> setPercentOutput(-0.05)),
             Commands.waitUntil(() -> motor.getSupplyCurrent().getValue().in(Amps) > 0.4),
