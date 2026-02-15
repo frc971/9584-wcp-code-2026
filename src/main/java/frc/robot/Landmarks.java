@@ -54,6 +54,8 @@ public class Landmarks {
         return maybePose
             .map(pose3d -> pose3d.getTranslation().toTranslation2d())
             .orElse(new Translation2d(0, 0));
+    }
+    
     public static Pose2d climbPose() {
         final Optional<Alliance> alliance = DriverStation.getAlliance();
         if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
