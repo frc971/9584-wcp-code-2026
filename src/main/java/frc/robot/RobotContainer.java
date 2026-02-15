@@ -270,8 +270,12 @@ public class RobotContainer {
         configureManualDriveBindings();
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand())
+            .onTrue(intake.homingCommand());
+        RobotModeTriggers.autonomous()
             .onTrue(hanger.homingHopperCommand());
+        //when switching from auto to teleop, extend from tower to ground and move away from tower
+        RobotModeTriggers.teleop()
+            .onTrue(subsystemCommands.unClimbWithDriveCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
