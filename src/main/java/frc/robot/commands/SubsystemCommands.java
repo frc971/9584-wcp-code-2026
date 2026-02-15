@@ -110,6 +110,7 @@ public final class SubsystemCommands {
     // move the hanger to hanging, auto align to tower, then move the hanger to hung
     public Command climbWithAutoAlign() {
         return Commands.sequence(
+            Commands.print("Climbing with auto align"),
             Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_EXTEND)),
             autoAlignClimbCommand(),
             Commands.runOnce(() -> hanger.positionCommand(Position.HANGER_HOME))
@@ -130,6 +131,7 @@ public final class SubsystemCommands {
 
     public Command climbWithDriveCommand() {
         return Commands.sequence(
+            Commands.print("Climbing with drive"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}),
             Commands.runOnce(() ->{
                 swerve.setControl(
@@ -146,6 +148,7 @@ public final class SubsystemCommands {
 
     public Command unClimbWithDriveCommand() {
         return Commands.sequence(
+            Commands.print("Unclimbing with drive"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}), //extend hanger
             Commands.runOnce(() ->{
                 swerve.setControl(
