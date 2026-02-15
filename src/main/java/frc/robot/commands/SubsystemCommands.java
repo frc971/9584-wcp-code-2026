@@ -74,7 +74,7 @@ public final class SubsystemCommands {
     }
 
     public Command aimAndShoot() {
-        System.out.println("=========Aim and Shoot Command");
+        System.out.println("=========Aim and Shoot Command=========");
         final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
         return Commands.parallel(
@@ -88,17 +88,19 @@ public final class SubsystemCommands {
     }
 
     public Command autoAim() {
-        System.out.println("Running aim and drive command");
+        System.out.println("=========Running aim and drive command=========");
         return new AimAndDriveCommand(swerve, forwardInput, leftInput);
     }
 
     public Command shootManually() {
+        System.out.println("========Shooting Manually=========");
         return shooter.dashboardSpinUpCommand()
             .andThen(feed())
             .handleInterrupt(() -> shooter.stop());
     }
 
     public Command autoAlignClimbCommand() {
+        System.out.println("=========Auto Align Climbing=========");
         return Commands.defer(
             () -> AutoBuilder.pathfindToPose(
                 Landmarks.climbPose(),
@@ -108,8 +110,8 @@ public final class SubsystemCommands {
             Set.of(swerve)
         );
     }
-    
     private Command feed() {
+        System.out.println("=========Feed========");
         return Commands.sequence(
             Commands.waitSeconds(0.25),
             Commands.parallel(
