@@ -270,8 +270,8 @@ public class RobotContainer {
         configureManualDriveBindings();
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand())
-            .onTrue(hanger.homingHopperCommand());
+            .onTrue(intake.homingCommand());
+        //    .onTrue(hanger.homingHopperCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
