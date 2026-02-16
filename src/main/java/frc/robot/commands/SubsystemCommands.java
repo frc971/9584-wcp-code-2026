@@ -31,8 +31,8 @@ public final class SubsystemCommands {
     private final DoubleSupplier forwardInput;
     private final DoubleSupplier leftInput;
 
-    private static final double kClimbDriveSpeedMetersPerSecond = 0.35;
-    private static final double kClimbDriveDurationSeconds = 0.6;
+    private static final double kClimbDriveSpeedMetersPerSecond = 1.0;
+    private static final double kClimbDriveDurationSeconds = 2.4;
 
     private final SwerveRequest.RobotCentric climRobotCentricRequest = new SwerveRequest.RobotCentric();
 
@@ -133,34 +133,36 @@ public final class SubsystemCommands {
         return Commands.sequence(
             Commands.print("Climbing with drive"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}),
-            Commands.runOnce(() ->{
+            Commands.run(() ->{
+                Commands.print("Moving toward tower");
                 swerve.setControl(
                     climRobotCentricRequest
                         .withVelocityX(kClimbDriveSpeedMetersPerSecond)
                         .withVelocityY(0.0)
                         .withRotationalRate(0.0)
                 );
-            }),
+            }, swerve)
+            .withTimeout(kClimbDriveDurationSeconds),
+            Commands.print("Setting hanger to hung"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_HOME);})
-        )
-        .withTimeout(kClimbDriveDurationSeconds);
+        );
     }
 
     public Command unClimbWithDriveCommand() {
         return Commands.sequence(
             Commands.print("Unclimbing with drive"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}), //extend hanger
-            Commands.runOnce(() ->{
+            Commands.run(() ->{
                 swerve.setControl(
                     climRobotCentricRequest
                         .withVelocityX(-kClimbDriveSpeedMetersPerSecond) //moving away from tower
                         .withVelocityY(0.0)
                         .withRotationalRate(0.0)
                 );
-            }),
+            }, swerve)
+            .withTimeout(kClimbDriveDurationSeconds),
             Commands.runOnce(() -> {hanger.homingHopperCommand();}) //home hanger (will set to extend hopper)
-        )
-        .withTimeout(kClimbDriveDurationSeconds);
+        );
     }
 
     private Command feed() {

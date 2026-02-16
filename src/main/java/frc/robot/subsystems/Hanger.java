@@ -111,7 +111,7 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command positionCommand(Position position) {
-        System.out.println("====Hanger Position Command");
+        System.out.println("====Hanger Position Command to " + position);
         return runOnce(() -> 
             {
                 System.out.println("Setting hanger position to " + position);
