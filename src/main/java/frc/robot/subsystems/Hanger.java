@@ -131,7 +131,9 @@ public class Hanger extends SubsystemBase {
     }
 
     public Command homingHopperCommand() {
+        System.out.println("=========Hanger Homing Command=========");
         return Commands.sequence(
+            Commands.print("Hanger homing command"),
             runOnce(() -> setPercentOutput(-0.05)),
             Commands.waitUntil(() -> motor.getSupplyCurrent().getValue().in(Amps) > 0.4),
             runOnce(() -> {

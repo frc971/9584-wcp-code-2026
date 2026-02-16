@@ -275,7 +275,7 @@ public class RobotContainer {
             .onTrue(hanger.homingHopperCommand());
         //when switching from auto to teleop, extend from tower to ground and move away from tower
         RobotModeTriggers.teleop()
-            .onTrue(subsystemCommands.unClimbWithDriveCommand());
+            .onTrue(Commands.runOnce(() -> subsystemCommands.unClimbWithDriveCommand()));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));

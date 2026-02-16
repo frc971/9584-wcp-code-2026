@@ -149,6 +149,7 @@ public final class SubsystemCommands {
     }
 
     public Command unClimbWithDriveCommand() {
+        System.out.println("=========Unclimb with Drive Command======");
         return Commands.sequence(
             Commands.print("Unclimbing with drive"),
             Commands.runOnce(() -> {hanger.positionCommand(Position.HANGER_EXTEND);}), //extend hanger

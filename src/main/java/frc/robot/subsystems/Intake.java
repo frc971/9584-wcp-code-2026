@@ -208,7 +208,9 @@ public class Intake extends SubsystemBase {
     }
 
     public Command homingCommand() {
+        System.out.println("=======Intake Homing Command==========");
         return Commands.sequence(
+            Commands.print("Intake homing command"),
             runOnce(() -> setPivotPercentOutput(0.1)),
             Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
             runOnce(() -> {
