@@ -6,46 +6,76 @@ import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Value;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.controls.DutyCycleOut;
+
+import edu.wpi.first.math.controller.PIDController;
+
 public class Hood extends SubsystemBase {
-    private static final Distance kServoLength = Millimeters.of(100);
-    private static final LinearVelocity kMaxServoSpeed = Millimeters.of(20).per(Second);
+    // Position limits (0.0 to 1.0 based on analog voltage)
     private static final double kMinPosition = 0.01;
     private static final double kMaxPosition = 0.77;
     private static final double kPositionTolerance = 0.01;
+    
+    // PID constants - TUNE THESE through testing!
+    private static final double kP = 3.0;
+    private static final double kI = 0.0;
+    private static final double kD = 0.1;
 
-    private final Servo leftServo;
-    private final Servo rightServo;
-
-    private double currentPosition = 0.5;
+    private static final double kMaxVoltage = 0.3;
+    
+    // Max output to motors
+    private static final double kMaxOutput = 0.5;
+    
+    // Hardware
+    private final TalonFX leftMotor;
+    private final TalonFX rightMotor;
+    private final AnalogInput leftFeedback;
+    private final AnalogInput rightFeedback;
+    
+    // Control
+    private final PIDController leftPID;
+    private final PIDController rightPID;
+    private final DutyCycleOut leftControlRequest = new DutyCycleOut(0);
+    private final DutyCycleOut rightControlRequest = new DutyCycleOut(0);
+    
     private double targetPosition = 0.5;
-    private Time lastUpdateTime = Seconds.of(0);
 
     public Hood() {
-        leftServo = new Servo(Ports.kHoodLeftServo);
-        rightServo = new Servo(Ports.kHoodRightServo);
-        leftServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
-        rightServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
-        setPosition(currentPosition);
-        SmartDashboard.putData(this);
+        // Initialize Talon FX controllers
+        leftMotor = new TalonFX(Ports.kHoodLeftMotor);
+        rightMotor = new TalonFX(Ports.kHoodRightMotor);
+        
+        // Configure motors
+        leftMotor.setNeutralMode(NeutralModeValue.Brake);
+        rightMotor.setNeutralMode(NeutralModeValue.Brake);
+        
+        // Initialize analog inputs for position feedback
+        leftFeedback = new AnalogInput(Ports.kHoodLeftFeedback);
+        rightFeedback = new AnalogInput(Ports.kHoodRightFeedback);
+        
+        // Initialize PID controllers
+        leftPID = new PIDController(kP, kI, kD);
+        rightPID = new PIDController(kP, kI, kD);
+        
+        leftPID.setTolerance(kPositionTolerance);
+        rightPID.setTolerance(kPositionTolerance);
+        
+        // Set initial position
+        setPosition(targetPosition);
     }
 
     /** Expects a position between 0.0 and 1.0 */
     public void setPosition(double position) {
         final double clampedPosition = MathUtil.clamp(position, kMinPosition, kMaxPosition);
-        leftServo.set(clampedPosition);
-        rightServo.set(clampedPosition);
         targetPosition = clampedPosition;
     }
 
@@ -56,24 +86,26 @@ public class Hood extends SubsystemBase {
     }
 
     public boolean isPositionWithinTolerance() {
-        return MathUtil.isNear(targetPosition, currentPosition, kPositionTolerance);
+        return leftPID.atSetpoint() && rightPID.atSetpoint();
     }
 
     private void updateCurrentPosition() {
-        final Time currentTime = Seconds.of(Timer.getFPGATimestamp());
-        final Time elapsedTime = currentTime.minus(lastUpdateTime);
-        lastUpdateTime = currentTime;
+        double leftPercentOutput = leftPID.calculate(getLeftPosition(), targetPosition);
+        double rightPercentOutput = rightPID.calculate(getRightPosition(), targetPosition);
 
-        if (isPositionWithinTolerance()) {
-            currentPosition = targetPosition;
-            return;
-        }
+        leftPercentOutput = MathUtil.clamp(leftPercentOutput, -kMaxOutput, kMaxOutput);
+        rightPercentOutput = MathUtil.clamp(rightPercentOutput, -kMaxOutput, kMaxOutput);
 
-        final Distance maxDistanceTraveled = kMaxServoSpeed.times(elapsedTime);
-        final double maxPercentageTraveled = maxDistanceTraveled.div(kServoLength).in(Value);
-        currentPosition = targetPosition > currentPosition
-            ? Math.min(targetPosition, currentPosition + maxPercentageTraveled)
-            : Math.max(targetPosition, currentPosition - maxPercentageTraveled);
+        leftMotor.setControl(leftControlRequest.withOutput(leftPercentOutput));
+        rightMotor.setControl(rightControlRequest.withOutput(rightPercentOutput));
+    }
+
+    public double getLeftPosition() {
+        return MathUtil.clamp(leftFeedback.getVoltage() / kMaxVoltage, 0.0, 1.0);
+    }
+
+    public double getRightPosition() {
+        return MathUtil.clamp(rightFeedback.getVoltage() / kMaxVoltage, 0.0, 1.0);
     }
 
     @Override
@@ -84,7 +116,8 @@ public class Hood extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Current Position", () -> currentPosition, null);
+        builder.addDoubleProperty("Current Left Position", () -> getLeftPosition(), null);
+        builder.addDoubleProperty("Current Right Position", () -> getRightPosition(), null);
         builder.addDoubleProperty("Target Position", () -> targetPosition, value -> setPosition(value));
     }
 }
