@@ -68,6 +68,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void disabledInit() {
         m_autonomousCommand = null;
+        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
     }
 
@@ -76,6 +77,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
+        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
         if (RobotBase.isSimulation()) {
             m_robotContainer.resetFuelSim();
@@ -94,6 +96,7 @@ public class Robot extends LoggedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
+        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
     }
 
@@ -104,6 +107,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void testInit() {
         CommandScheduler.getInstance().cancelAll();
+        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
     }
 

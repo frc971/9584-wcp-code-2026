@@ -83,6 +83,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         }
     }
 
+    public void setDriveNeutralMode(NeutralModeValue neutralMode) {
+        for (var module : getModules()) {
+            module.getDriveMotor().setNeutralMode(neutralMode);
+        }
+    }
+
     // Get swerve module constants as an array of constants
     private static SwerveModuleConstants<?, ?, ?>[] getSwerveModuleConstants() {
     SwerveModuleConstants<?, ?, ?>[] modules =

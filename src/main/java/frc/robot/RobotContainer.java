@@ -503,5 +503,9 @@ public class RobotContainer {
         swerve.setSteerNeutralMode(neutralMode);
     }
 
+    public void setSwerveDriveNeutralMode(NeutralModeValue neutralMode) {
+        swerve.setDriveNeutralMode(neutralMode);
+    }
+
     public void autonomousInit() {}
 }
