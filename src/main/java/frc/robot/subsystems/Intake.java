@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.8);
+        INTAKE(1);
 
         private final double percentOutput;
 
@@ -164,6 +164,7 @@ public class Intake extends SubsystemBase {
         pivotMotor.setControl(
             pivotMotionMagicRequest
                 .withPosition(position.angle())
+                .withFeedForward(1.0)
         );
         System.out.println("Intake position set");
     }
@@ -188,8 +189,8 @@ public class Intake extends SubsystemBase {
             () -> {
                 System.out.println("Starting Intake");
                 set(Position.INTAKE);
+                setPivotPercentOutput(0.1);
                 set(Speed.INTAKE);
-                setPivotPercentOutput(0.01);
             },
             () -> {
                 System.out.println("Stopping Intake");
