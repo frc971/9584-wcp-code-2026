@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -497,5 +498,10 @@ public class RobotContainer {
     public static double ExponentialConvert(double controllerValue, double exponent) {
         return Math.copySign(Math.pow(Math.abs(controllerValue), exponent), controllerValue);
     }
+
+    public void setSwerveSteerNeutralMode(NeutralModeValue neutralMode) {
+        swerve.setSteerNeutralMode(neutralMode);
+    }
+
     public void autonomousInit() {}
 }

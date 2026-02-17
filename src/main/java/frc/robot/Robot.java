@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.sim.PhysicsSim;
 import frc.robot.utils.simulation.FuelSim;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -67,6 +68,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void disabledInit() {
         m_autonomousCommand = null;
+        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
     }
 
     @Override
@@ -74,6 +76,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
+        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
         if (RobotBase.isSimulation()) {
             m_robotContainer.resetFuelSim();
         }
@@ -91,6 +94,7 @@ public class Robot extends LoggedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
+        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
     }
 
     //TODO : Em , todo, em yeah, :)
@@ -100,6 +104,7 @@ public class Robot extends LoggedRobot {
     @Override
     public void testInit() {
         CommandScheduler.getInstance().cancelAll();
+        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
     }
 
     @Override

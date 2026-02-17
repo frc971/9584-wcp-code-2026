@@ -10,6 +10,7 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -73,6 +74,12 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         configureAutoBuilder();
         if (Utils.isSimulation()) {
             startSimThread();
+        }
+    }
+
+    public void setSteerNeutralMode(NeutralModeValue neutralMode) {
+        for (var module : getModules()) {
+            module.getSteerMotor().setNeutralMode(neutralMode);
         }
     }
 
