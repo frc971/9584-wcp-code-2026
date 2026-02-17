@@ -73,7 +73,11 @@ public class Robot extends LoggedRobot {
     }
 
     @Override
-    public void disabledPeriodic() {}
+    public void disabledPeriodic() {
+        // Reassert neutral modes while disabled in case firmware resets after brownouts
+        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
+        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
+    }
 
     @Override
     public void autonomousInit() {
