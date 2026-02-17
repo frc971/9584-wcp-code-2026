@@ -182,6 +182,7 @@ public class Intake extends SubsystemBase {
                 System.out.println("Starting Intake");
                 set(Position.INTAKE);
                 set(Speed.INTAKE);
+                setPivotPercentOutput(0.12);
             },
             () -> {
                 System.out.println("Stopping Intake");

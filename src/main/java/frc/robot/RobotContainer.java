@@ -269,8 +269,8 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand());
+        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        //    .onTrue(intake.homingCommand());
         //    .onTrue(hanger.homingHopperCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
