@@ -270,9 +270,9 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
         //    .onTrue(intake.homingCommand());
-        //    .onTrue(hanger.homingHopperCommand());
+        .onTrue(hanger.homingHopperCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -330,9 +330,6 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-        simButton(Constants.SimControllerButtons.kRobotCentricMode)
-            .or(driverBButton())
-            .onTrue(Commands.runOnce(this::toggleSimRobotCentricMode));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
@@ -402,15 +399,6 @@ public class RobotContainer {
 
     private boolean isDriverControllerConnected() {
         return DriverStation.isJoystickConnected(driver.getHID().getPort());
-    }
-
-    private void toggleSimRobotCentricMode() {
-        simRobotCentricMode = !simRobotCentricMode;
-        SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
-        DriverStation.reportWarning(
-            "Sim Robot Centric Mode: " + (simRobotCentricMode ? "Robot-Centric" : "Field-Centric"),
-            false
-        );
     }
 
     private Trigger driverRightTrigger() {

@@ -54,7 +54,7 @@ public class Intake extends SubsystemBase {
 
     public enum Position {
         HOMED(110),
-        STOWED(100),
+        STOWED(90),
         INTAKE(4),
         AGITATE(20);
 
