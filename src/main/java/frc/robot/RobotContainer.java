@@ -413,11 +413,11 @@ public class RobotContainer {
     }
 
     private Trigger driverRightTrigger() {
-        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.25);
+        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.01);
     }
 
     private Trigger driverLeftTrigger() {
-        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.25);
+        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.01);
     }
 
     private Trigger driverRightBumper() {
