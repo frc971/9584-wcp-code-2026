@@ -55,7 +55,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(100),
-        INTAKE(-4),
+        INTAKE(4),
         AGITATE(20);
 
         private final double degrees;
@@ -86,7 +86,7 @@ public class Intake extends SubsystemBase {
     private boolean isHomed = false;
 
     public Intake() {
-        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kCANivoreCANBus);
+        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
@@ -164,7 +164,6 @@ public class Intake extends SubsystemBase {
         pivotMotor.setControl(
             pivotMotionMagicRequest
                 .withPosition(position.angle())
-                .withFeedForward(1.0)
         );
         System.out.println("Intake position set");
     }
@@ -189,7 +188,6 @@ public class Intake extends SubsystemBase {
             () -> {
                 System.out.println("Starting Intake");
                 set(Position.INTAKE);
-                setPivotPercentOutput(0.1);
                 set(Speed.INTAKE);
             },
             () -> {
