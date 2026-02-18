@@ -145,6 +145,31 @@ public class RobotContainer {
         swerve.setVision(vision);
     }
 
+    public void ensureSwervePoseSeeded() {
+        final Pose2d pose = swerve.getState().Pose;
+        if (!isPoseInsideField(pose)) {
+            swerve.resetPose(new Pose2d());
+        }
+        swerve.seedFieldCentric();
+    }
+
+    private boolean isPoseInsideField(Pose2d pose) {
+        if (pose == null) {
+            return false;
+        }
+        final Translation2d translation = pose.getTranslation();
+        final double x = translation.getX();
+        final double y = translation.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return false;
+        }
+        final double margin = 0.1;
+        return x >= -margin
+            && x <= Landmarks.fieldLength + margin
+            && y >= -margin
+            && y <= Landmarks.fieldWidth + margin;
+    }
+
     private void configureAutonomous() {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
