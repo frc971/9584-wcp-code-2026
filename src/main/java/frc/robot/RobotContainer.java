@@ -53,6 +53,11 @@ import frc.robot.subsystems.Swerve;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
+import frc.robot.subsystems.VisionSubsystem;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import org.littletonrobotics.junction.Logger;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -69,6 +74,7 @@ public class RobotContainer {
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
     private final Limelight limelight = new Limelight("limelight");
+    private final VisionSubsystem vision = new VisionSubsystem();
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(
         Driving.kMaxSpeed.in(MetersPerSecond),
@@ -136,6 +142,7 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        swerve.setVision(vision);
     }
 
     private void configureAutonomous() {
