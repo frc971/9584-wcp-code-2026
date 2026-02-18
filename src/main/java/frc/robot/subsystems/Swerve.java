@@ -1,20 +1,26 @@
 package frc.robot.subsystems;
 
 import java.util.List;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Seconds;
+
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -24,7 +30,6 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.motorcontrol.Talon;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -37,16 +42,12 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
-import org.littletonrobotics.junction.Logger;
-
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Seconds;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-
 public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
+    private static final double kSimLoopPeriod = 0.004; // 4 ms
+    private static final double kBumpTiltThresholdDegrees = 5.0;
+    private Notifier m_simNotifier = null;
+    private static double m_lastSimTime;
+
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
@@ -68,6 +69,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
+    private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
 
     private final StatusSignal<Angle> pitchSignal;
     private final StatusSignal<Angle> rollSignal;
@@ -90,6 +92,22 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         if (Utils.isSimulation()) {
             startSimThread();
         }
+    }
+
+    public void setSteerNeutralMode(NeutralModeValue neutralMode) {
+        for (var module : getModules()) {
+            module.getSteerMotor().setNeutralMode(neutralMode);
+        }
+    }
+
+    public void setDriveNeutralMode(NeutralModeValue neutralMode) {
+        for (var module : getModules()) {
+            module.getDriveMotor().setNeutralMode(neutralMode);
+        }
+    }
+
+    public void requestIdle() {
+        setControl(idleRequest);
     }
 
     // Get swerve module constants as an array of constants

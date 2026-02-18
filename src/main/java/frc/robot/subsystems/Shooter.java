@@ -36,7 +36,7 @@ public class Shooter extends SubsystemBase {
     private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
-    private double dashboardTargetRPM = 0.0;
+    private double dashboardTargetRPM = 4000.0;
 
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
@@ -44,15 +44,15 @@ public class Shooter extends SubsystemBase {
         rightMotor = new TalonFX(Ports.kShooterRight, Ports.kRoboRioCANBus);
         motors = List.of(leftMotor, middleMotor, rightMotor);
 
-        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive);
-        configureMotor(middleMotor, InvertedValue.Clockwise_Positive);
-        configureMotor(rightMotor, InvertedValue.Clockwise_Positive);
+        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 120, 70);
+        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 160, 90);
+        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 120, 70);
 
         motors.forEach(SimDeviceRegistrar::registerTalonFX);
         SmartDashboard.putData(this);
     }
 
-    private void configureMotor(TalonFX motor, InvertedValue invertDirection) {
+    private void configureMotor(TalonFX motor, InvertedValue invertDirection, double statorLimit, double supplyLimit) {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
                 new MotorOutputConfigs()
@@ -65,9 +65,9 @@ public class Shooter extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(120))
+                    .withStatorCurrentLimit(Amps.of(statorLimit))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(70))
+                    .withSupplyCurrentLimit(Amps.of(supplyLimit))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withSlot0(

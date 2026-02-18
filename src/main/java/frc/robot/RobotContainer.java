@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -277,8 +278,8 @@ public class RobotContainer {
         configureManualDriveBindings();
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
-            .onTrue(intake.homingCommand())
-            .onTrue(hanger.homingHopperCommand());
+        //    .onTrue(intake.homingCommand());
+        .onTrue(hanger.homingHopperCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -336,9 +337,6 @@ public class RobotContainer {
                     return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
                 }
             }));
-        simButton(Constants.SimControllerButtons.kRobotCentricMode)
-            .or(driverBButton())
-            .onTrue(Commands.runOnce(this::toggleSimRobotCentricMode));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
@@ -410,21 +408,12 @@ public class RobotContainer {
         return DriverStation.isJoystickConnected(driver.getHID().getPort());
     }
 
-    private void toggleSimRobotCentricMode() {
-        simRobotCentricMode = !simRobotCentricMode;
-        SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
-        DriverStation.reportWarning(
-            "Sim Robot Centric Mode: " + (simRobotCentricMode ? "Robot-Centric" : "Field-Centric"),
-            false
-        );
-    }
-
     private Trigger driverRightTrigger() {
-        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.25);
+        return new Trigger(() -> isDriverControllerConnected() && driver.getRightTriggerAxis() > 0.01);
     }
 
     private Trigger driverLeftTrigger() {
-        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.25);
+        return new Trigger(() -> isDriverControllerConnected() && driver.getLeftTriggerAxis() > 0.01);
     }
 
     private Trigger driverRightBumper() {
@@ -504,5 +493,18 @@ public class RobotContainer {
     public static double ExponentialConvert(double controllerValue, double exponent) {
         return Math.copySign(Math.pow(Math.abs(controllerValue), exponent), controllerValue);
     }
+
+    public void setSwerveSteerNeutralMode(NeutralModeValue neutralMode) {
+        swerve.setSteerNeutralMode(neutralMode);
+    }
+
+    public void setSwerveDriveNeutralMode(NeutralModeValue neutralMode) {
+        swerve.setDriveNeutralMode(neutralMode);
+    }
+
+    public void requestSwerveIdle() {
+        swerve.requestIdle();
+    }
+
     public void autonomousInit() {}
 }

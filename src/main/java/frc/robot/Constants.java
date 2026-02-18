@@ -45,7 +45,7 @@ public final class Constants {
     public static class SimConstants {
         public static final double controllerVelocityCurveExponent = 1.0;
         public static final double controllerRotationCurveExponent = 1.0;
-        public static final double controllerDeadbandPercentage = 0.9;
+        public static final double controllerDeadbandPercentage = 0.5;
     }
 
     public static class SimControllerButtons {
