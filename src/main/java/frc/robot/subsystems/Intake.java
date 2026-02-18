@@ -53,6 +53,7 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
+        //STOW the intake before disable
         HOMED(110),
         STOWED(0),
         INTAKE(-90),
