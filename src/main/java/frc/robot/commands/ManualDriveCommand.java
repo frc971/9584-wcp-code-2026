@@ -111,7 +111,7 @@ public class ManualDriveCommand extends Command {
 
     private void setLockedHeadingToCurrent() {
         final Rotation2d headingInBlueAlliancePerspective = swerve.getState().Pose.getRotation();
-        final Rotation2d headingInOperatorPerspective = headingInBlueAlliancePerspective.rotateBy(swerve.getOperatorForwardDirection());
+        final Rotation2d headingInOperatorPerspective = headingInBlueAlliancePerspective.minus(swerve.getOperatorForwardDirection());
         setLockedHeading(headingInOperatorPerspective);
     }
 

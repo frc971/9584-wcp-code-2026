@@ -3,22 +3,22 @@ package frc.robot;
 import static edu.wpi.first.units.Units.Inches;
 
 import java.util.Optional;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose3d;
-
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Landmarks {
+    private static final Translation2d kBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
+    private static final Translation2d kRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+
     public static Translation2d hubPosition() {
-        final Optional<Alliance> alliance = DriverStation.getAlliance();
-        if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
-            return new Translation2d(Inches.of(182.105), Inches.of(158.845));
-        }
-        return new Translation2d(Inches.of(469.115), Inches.of(158.845));
+        final Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        return alliance == Alliance.Blue ? kBlueHubPosition : kRedHubPosition;
     }
 
     public static final AprilTagFieldLayout layout =
@@ -57,10 +57,7 @@ public class Landmarks {
     }
     
     public static Pose2d climbPose() {
-        final Optional<Alliance> alliance = DriverStation.getAlliance();
-        if (alliance.isPresent() && alliance.get() == Alliance.Blue) {
-            return Constants.ClimbAlignment.kBlueAllianceTargetPose;
-        }
-        return Constants.ClimbAlignment.kRedAllianceTargetPose;
+        final Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        return alliance == Alliance.Blue ? Constants.ClimbAlignment.kBlueAllianceTargetPose : Constants.ClimbAlignment.kRedAllianceTargetPose;
     }
 }
