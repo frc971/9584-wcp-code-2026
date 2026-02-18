@@ -3,6 +3,7 @@ package frc.util;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -34,6 +35,7 @@ public class SwerveTelemetry {
     public SwerveTelemetry(double maxSpeed, Supplier<Rotation3d> rotationSupplier) {
         MaxSpeed = maxSpeed;
         this.rotationSupplier = Objects.requireNonNull(rotationSupplier);
+        SignalLogger.start();
 
         /* Set up the module state Mechanism2d telemetry */
         for (int i = 0; i < 4; ++i) {
