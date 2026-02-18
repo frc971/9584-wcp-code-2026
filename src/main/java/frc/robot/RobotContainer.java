@@ -495,5 +495,9 @@ public class RobotContainer {
         swerve.setDriveNeutralMode(neutralMode);
     }
 
+    public void requestSwerveIdle() {
+        swerve.requestIdle();
+    }
+
     public void autonomousInit() {}
 }

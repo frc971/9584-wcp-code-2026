@@ -53,6 +53,7 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
+    private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
 
     private final StatusSignal<Angle> pitchSignal;
     private final StatusSignal<Angle> rollSignal;
@@ -87,6 +88,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         for (var module : getModules()) {
             module.getDriveMotor().setNeutralMode(neutralMode);
         }
+    }
+
+    public void requestIdle() {
+        setControl(idleRequest);
     }
 
     // Get swerve module constants as an array of constants

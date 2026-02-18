@@ -70,6 +70,7 @@ public class Robot extends LoggedRobot {
         m_autonomousCommand = null;
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
+        m_robotContainer.requestSwerveIdle();
     }
 
     @Override
@@ -77,6 +78,7 @@ public class Robot extends LoggedRobot {
         // Reassert neutral modes while disabled in case firmware resets after brownouts
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
+        m_robotContainer.requestSwerveIdle();
     }
 
     @Override
