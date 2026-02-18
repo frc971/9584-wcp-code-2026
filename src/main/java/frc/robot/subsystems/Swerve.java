@@ -55,11 +55,6 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
-    private static final double kSimLoopPeriod = 0.005;
-    private static final double kBumpTiltThresholdDegrees = 5.0;
-    private Notifier m_simNotifier = null;
-    private static double m_lastSimTime;
-
     private VisionSubsystem vision;
     //uses this to be able to lock angle of drivetrain a certain way
     private final SwerveRequest.FieldCentricFacingAngle faceAngleRequest =
