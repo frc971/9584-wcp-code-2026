@@ -13,12 +13,15 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class Landmarks {
-    private static final Translation2d kBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
-    private static final Translation2d kRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+    private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
+    private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+
+    private static final int[] kBlueHubTagIds = {25, 26};
+    private static final int[] kRedHubTagIds = {9, 10};
 
     public static Translation2d hubPosition() {
         final Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
-        return alliance == Alliance.Blue ? kBlueHubPosition : kRedHubPosition;
+        return alliance == Alliance.Blue ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition) : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
     }
 
     public static final AprilTagFieldLayout layout =
@@ -35,7 +38,7 @@ public class Landmarks {
     public static final Translation2d redDSOffset = redOutpostCenter.plus(new Translation2d(0,fieldWidth - 0.5));
 
     //red hub (backside)
-    public static final Translation2d redHub = getTagPosition(3);
+    public static final Translation2d redHub = computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
     public static final Translation2d redHubOffset = getTagPosition(4);
 
     //blue outpost
@@ -46,12 +49,24 @@ public class Landmarks {
     public static final Translation2d blueDSOffset = blueOutpostCenter.minus(new Translation2d(0, fieldWidth -0.5));
 
     //blue hub (backside)
-    public static final Translation2d blueHub = getTagPosition(3);
-    public static final Translation2d blueHubOffset = getTagPosition(4);
+    public static final Translation2d blueHub = computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition);
+    public static final Translation2d blueHubOffset = getTagPosition(26);
+
+    private static Translation2d computeHubPosition(int[] tagIds, Translation2d fallback) {
+        Translation2d sum = new Translation2d();
+        int count = 0;
+        for (int id : tagIds) {
+            Optional<Pose3d> pose = layout.getTagPose(id);
+            if (pose.isPresent()) {
+                sum = sum.plus(pose.get().getTranslation().toTranslation2d());
+                count++;
+            }
+        }
+        return count > 0 ? sum.div(count) : fallback;
+    }
 
     private static Translation2d getTagPosition(int id) {
-        Optional<Pose3d> maybePose = layout.getTagPose(id);
-        return maybePose
+        return layout.getTagPose(id)
             .map(pose3d -> pose3d.getTranslation().toTranslation2d())
             .orElse(new Translation2d(0, 0));
     }
