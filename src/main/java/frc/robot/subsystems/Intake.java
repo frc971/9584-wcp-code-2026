@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.BooleanSupplier;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -24,6 +26,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -36,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.8);
+        INTAKE(1);
 
         private final double percentOutput;
 
@@ -50,9 +53,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
+        //STOW the intake before disable
         HOMED(110),
-        STOWED(100),
-        INTAKE(-4),
+        STOWED(0),
+        INTAKE(-90),
         AGITATE(20);
 
         private final double degrees;
@@ -76,10 +80,14 @@ public class Intake extends SubsystemBase {
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
     private Speed currentSpeed = Speed.STOP;
 
+    private static final double kHomingPercentOutput = 0.1;
+    private static final double kHomingCurrentThresholdAmps = 6.0;
+    private static final double kHomingTimeoutSeconds = 1.5;
+
     private boolean isHomed = false;
 
     public Intake() {
-        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kCANivoreCANBus);
+        pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
         configurePivotMotor();
         configureRollerMotor();
@@ -208,19 +216,24 @@ public class Intake extends SubsystemBase {
     }
 
     public Command homingCommand() {
-        System.out.println("=======Intake Homing Command==========");
+        final BooleanSupplier hasHitHardstop =
+            () -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > kHomingCurrentThresholdAmps;
         return Commands.sequence(
-            Commands.print("Intake homing command"),
-            runOnce(() -> setPivotPercentOutput(0.1)),
-            Commands.waitUntil(() -> pivotMotor.getSupplyCurrent().getValue().in(Amps) > 6),
+            runOnce(() -> setPivotPercentOutput(kHomingPercentOutput)),
+            Commands.waitUntil(hasHitHardstop).withTimeout(kHomingTimeoutSeconds),
             runOnce(() -> {
-                pivotMotor.setPosition(Position.HOMED.angle());
-                isHomed = true;
-                set(Position.STOWED);
+                if (hasHitHardstop.getAsBoolean()) {
+                    pivotMotor.setPosition(Position.HOMED.angle());
+                    isHomed = true;
+                    set(Position.STOWED);
+                } else {
+                    DriverStation.reportWarning("Intake homing timed out before hitting the hard stop", false);
+                }
             })
         )
+        .finallyDo(interrupted -> setPivotPercentOutput(0))
         .unless(() -> isHomed)
-        .withInterruptBehavior(InterruptionBehavior.kCancelIncoming);
+        .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
     @Override
