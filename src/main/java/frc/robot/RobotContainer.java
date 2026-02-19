@@ -314,11 +314,6 @@ public class RobotContainer {
 
         driverRightStickButton().whileTrue(subsystemCommands.autoAim());
         driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
-        driverBButton().onTrue(Commands.runOnce(() -> {
-            if (manualDriveCommand != null) {
-                manualDriveCommand.toggleRobotCentricMode();
-            }
-        }));
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
