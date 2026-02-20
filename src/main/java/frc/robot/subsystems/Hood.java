@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Value;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -60,8 +61,9 @@ public class Hood extends SubsystemBase {
         
         // Initialize PID controllers
         pidController = new PIDController(kP, kI, kD);
-        
         pidController.setTolerance(kPositionTolerance);
+
+        SmartDashboard.putData(this);
     }
 
     private void configureMotor(TalonFX motor) {
@@ -91,6 +93,7 @@ public class Hood extends SubsystemBase {
 
     public Command setPosition(double hoodPosition) {
         targetPosition = hoodPosition;
+        targetPosition = MathUtil.clamp(targetPosition, kMinPosition, kMaxPosition);
         final double percentOutput = MathUtil.clamp(pidController.calculate(getPosition(), targetPosition), -kMaxOutput, kMaxOutput);
 
         return Commands.runOnce(() -> setPercentOutput(percentOutput));
