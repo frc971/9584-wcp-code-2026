@@ -91,6 +91,7 @@ public class RobotContainer {
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
     private boolean simRobotCentricMode = false;
+    private final double hoodPercentOutput = 0.4;
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
@@ -292,6 +293,9 @@ public class RobotContainer {
         driverPovDown().onTrue(hanger.unclimbCommand());
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+
+        driver.y().onTrue(hood.moveHoodCommand(hoodPercentOutput));
+        driver.a().onTrue(hood.moveHoodCommand(-hoodPercentOutput));
     }
 
     private void configureSimBindings() {
@@ -361,6 +365,12 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kHangerDown)
             .or(driverPovRight())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        simButton(Constants.SimControllerButtons.kHoodForward)
+            .or(driver.y())
+            .onTrue(hood.moveHoodCommand(hoodPercentOutput));
+        simButton(Constants.SimControllerButtons.kHoodBackward)
+            .or(driver.a())
+            .onTrue(hood.moveHoodCommand(-hoodPercentOutput));
     }
 
     private double getSimForwardInput() {
