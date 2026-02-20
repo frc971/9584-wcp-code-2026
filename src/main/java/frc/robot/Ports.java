@@ -17,4 +17,7 @@ public final class Ports {
     public static final int kShooterRight = 9;
     public static final int kHanger = 16;
     public static final int kHoodMotor = 24;
+
+    // PWM port
+    public static final int hoodPort = 9;
 }
