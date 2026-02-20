@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Millimeters;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
@@ -14,7 +15,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -55,8 +61,8 @@ public class Hood extends SubsystemBase {
         rightMotor = new TalonFX(Ports.kHoodRightMotor);
         
         // Configure motors
-        leftMotor.setNeutralMode(NeutralModeValue.Brake);
-        rightMotor.setNeutralMode(NeutralModeValue.Brake);
+        configureMotor(leftMotor);
+        configureMotor(rightMotor);
         
         // Initialize analog inputs for position feedback
         leftFeedback = new AnalogInput(Ports.kHoodLeftFeedback);
@@ -71,6 +77,23 @@ public class Hood extends SubsystemBase {
         
         // Set initial position
         setPosition(targetPosition);
+    }
+
+    private void configureMotor(TalonFX motor) {
+        final TalonFXConfiguration config = new TalonFXConfiguration()
+            .withMotorOutput(
+                new MotorOutputConfigs()
+                    .withNeutralMode(NeutralModeValue.Brake)
+                    .withInverted(InvertedValue.Clockwise_Positive)
+            )
+            .withCurrentLimits(
+                new CurrentLimitsConfigs()
+                    .withStatorCurrentLimit(Amps.of(2))
+                    .withStatorCurrentLimitEnable(true)
+                    .withSupplyCurrentLimit(Amps.of(2))
+                    .withSupplyCurrentLimitEnable(true)
+            );
+        motor.getConfigurator().apply(config);
     }
 
     /** Expects a position between 0.0 and 1.0 */
