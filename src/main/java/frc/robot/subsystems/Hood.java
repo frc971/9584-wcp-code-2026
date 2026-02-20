@@ -100,6 +100,10 @@ public class Hood extends SubsystemBase {
         return pidController.atSetpoint();
     }
 
+    public Command moveHoodCommand(double percentOutput) {
+        return startEnd(() -> setPercentOutput(percentOutput), () -> setPercentOutput(0.0));
+    }
+
     @Override
     public void periodic() {}
 
