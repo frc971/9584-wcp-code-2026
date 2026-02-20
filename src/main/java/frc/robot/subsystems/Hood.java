@@ -22,6 +22,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DutyCycleOut;
+import com.ctre.phoenix6.controls.VoltageOut;
 
 import edu.wpi.first.math.controller.PIDController;
 
@@ -42,41 +43,25 @@ public class Hood extends SubsystemBase {
     private static final double kMaxOutput = 0.5;
     
     // Hardware
-    private final TalonFX leftMotor;
-    private final TalonFX rightMotor;
-    private final AnalogInput leftFeedback;
-    private final AnalogInput rightFeedback;
+    private final TalonFX motor;
     
     // Control
-    private final PIDController leftPID;
-    private final PIDController rightPID;
-    private final DutyCycleOut leftControlRequest = new DutyCycleOut(0);
-    private final DutyCycleOut rightControlRequest = new DutyCycleOut(0);
+    private final PIDController pidController;
+    private final VoltageOut voltageRequest = new VoltageOut(0);
     
     private double targetPosition = 0.5;
 
     public Hood() {
-        // Initialize Talon FX controllers
-        leftMotor = new TalonFX(Ports.kHoodLeftMotor);
-        rightMotor = new TalonFX(Ports.kHoodRightMotor);
-        
-        // Configure motors
-        configureMotor(leftMotor);
-        configureMotor(rightMotor);
-        
-        // Initialize analog inputs for position feedback
-        leftFeedback = new AnalogInput(Ports.kHoodLeftFeedback);
-        rightFeedback = new AnalogInput(Ports.kHoodRightFeedback);
+        // Initialize Talon FX controller
+        motor = new TalonFX(Ports.kHoodMotor);
+
+        // Configure motor
+        configureMotor(motor);
         
         // Initialize PID controllers
-        leftPID = new PIDController(kP, kI, kD);
-        rightPID = new PIDController(kP, kI, kD);
+        pidController = new PIDController(kP, kI, kD);
         
-        leftPID.setTolerance(kPositionTolerance);
-        rightPID.setTolerance(kPositionTolerance);
-        
-        // Set initial position
-        setPosition(targetPosition);
+        pidController.setTolerance(kPositionTolerance);
     }
 
     private void configureMotor(TalonFX motor) {
@@ -96,51 +81,34 @@ public class Hood extends SubsystemBase {
         motor.getConfigurator().apply(config);
     }
 
-    /** Expects a position between 0.0 and 1.0 */
-    public void setPosition(double position) {
-        final double clampedPosition = MathUtil.clamp(position, kMinPosition, kMaxPosition);
-        targetPosition = clampedPosition;
+    public void setPercentOutput(double percentOutput) {
+        motor.setControl(voltageRequest.withOutput(percentOutput));
     }
 
-    /** Expects a position between 0.0 and 1.0 */
-    public Command positionCommand(double position) {
-        return runOnce(() -> setPosition(position))
-            .andThen(Commands.waitUntil(this::isPositionWithinTolerance));
+    public double getPosition() {
+        return MathUtil.clamp(motor.getMotorVoltage().getValueAsDouble() / kMaxVoltage, 0.0, 1.0);
+    }
+
+    public Command setPosition(double hoodPosition) {
+        targetPosition = hoodPosition;
+        final double percentOutput = MathUtil.clamp(pidController.calculate(getPosition(), targetPosition), -kMaxOutput, kMaxOutput);
+
+        return Commands.runOnce(() -> setPercentOutput(percentOutput));
     }
 
     public boolean isPositionWithinTolerance() {
-        return leftPID.atSetpoint() && rightPID.atSetpoint();
-    }
-
-    private void updateCurrentPosition() {
-        double leftPercentOutput = leftPID.calculate(getLeftPosition(), targetPosition);
-        double rightPercentOutput = rightPID.calculate(getRightPosition(), targetPosition);
-
-        leftPercentOutput = MathUtil.clamp(leftPercentOutput, -kMaxOutput, kMaxOutput);
-        rightPercentOutput = MathUtil.clamp(rightPercentOutput, -kMaxOutput, kMaxOutput);
-
-        leftMotor.setControl(leftControlRequest.withOutput(leftPercentOutput));
-        rightMotor.setControl(rightControlRequest.withOutput(rightPercentOutput));
-    }
-
-    public double getLeftPosition() {
-        return MathUtil.clamp(leftFeedback.getVoltage() / kMaxVoltage, 0.0, 1.0);
-    }
-
-    public double getRightPosition() {
-        return MathUtil.clamp(rightFeedback.getVoltage() / kMaxVoltage, 0.0, 1.0);
+        return pidController.atSetpoint();
     }
 
     @Override
-    public void periodic() {
-        updateCurrentPosition();
-    }
+    public void periodic() {}
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Current Left Position", () -> getLeftPosition(), null);
-        builder.addDoubleProperty("Current Right Position", () -> getRightPosition(), null);
-        builder.addDoubleProperty("Target Position", () -> targetPosition, value -> setPosition(value));
+        builder.addDoubleProperty("Motor Voltage", () -> motor.getMotorVoltage().getValueAsDouble(), null);
+        builder.addDoubleProperty("Motor Supply Current", () -> motor.getSupplyCurrent().getValueAsDouble(), null);
+        builder.addDoubleProperty("Motor Stator Current", () -> motor.getStatorCurrent().getValueAsDouble(), null);
+        builder.addDoubleProperty("Hood Position", () -> getPosition(), position -> setPosition(position));
     }
 }
