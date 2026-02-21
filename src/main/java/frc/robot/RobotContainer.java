@@ -317,7 +317,7 @@ public class RobotContainer {
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        driver.y().onTrue(hood.positionCommand(0.5)); //50% of range
+        driver.y().onTrue(hood.positionCommand(0.9)); //maximum
         driver.a().onTrue(hood.positionCommand(0.01)); //minimum
     }
 
