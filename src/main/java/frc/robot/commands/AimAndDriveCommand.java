@@ -9,6 +9,7 @@ import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -27,8 +28,9 @@ public class AimAndDriveCommand extends Command {
 
     private final Swerve swerve;
     private final DriveInputSmoother inputSmoother;
-    private static final double kPoseEdgeMarginMeters = 0.1;
-    private boolean poseWarningIssued = false;
+    private static final double kPoseEdgeMarginMeters = 0.3;
+    private PoseInvalidReason lastPoseWarningReason = null;
+    private Pose2d lastUsablePose = null;
 
     private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleRequest = new SwerveRequest.FieldCentricFacingAngle()
         .withRotationalDeadband(Driving.kPIDRotationDeadband)
@@ -53,59 +55,41 @@ public class AimAndDriveCommand extends Command {
     }
 
     public boolean isAimed() {
-        if (!currentPoseIsValid()) {
+        final Pose2d poseForTargeting = getCachedPoseForAiming();
+        if (poseForTargeting == null) {
             return false;
         }
-        final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective();
+        final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective(poseForTargeting);
         final Rotation2d currentHeadingInBlueAlliancePerspective = swerve.getState().Pose.getRotation();
         final Rotation2d currentHeadingInOperatorPerspective = currentHeadingInBlueAlliancePerspective.minus(swerve.getOperatorForwardDirection());
         return GeometryUtil.isNear(targetHeading, currentHeadingInOperatorPerspective, kAimTolerance);
     }
 
-    private Rotation2d getTargetHeadingInOperatorPerspective() {
-        return getTargetHeadingInFieldFrame().minus(swerve.getOperatorForwardDirection());
+    private Rotation2d getTargetHeadingInOperatorPerspective(Pose2d poseForTargeting) {
+        return getTargetHeadingInFieldFrame(poseForTargeting).minus(swerve.getOperatorForwardDirection());
     }
 
-    private Rotation2d getTargetHeadingInFieldFrame() {
+    private Rotation2d getTargetHeadingInFieldFrame(Pose2d poseForTargeting) {
         final Translation2d hubPosition = Landmarks.hubPosition();
-        final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
+        final Translation2d robotPosition = poseForTargeting.getTranslation();
         return hubPosition.minus(robotPosition).getAngle();
-    }
-
-    private boolean isPoseValid(Pose2d pose) {
-        if (pose == null) {
-            return false;
-        }
-        final Translation2d translation = pose.getTranslation();
-        final double x = translation.getX();
-        final double y = translation.getY();
-        if (!Double.isFinite(x) || !Double.isFinite(y)) {
-            return false;
-        }
-        return x >= -kPoseEdgeMarginMeters
-            && x <= Landmarks.fieldLength + kPoseEdgeMarginMeters
-            && y >= -kPoseEdgeMarginMeters
-            && y <= Landmarks.fieldWidth + kPoseEdgeMarginMeters;
-    }
-
-    private boolean currentPoseIsValid() {
-        return isPoseValid(swerve.getState().Pose);
     }
 
     @Override
     public void initialize() {
-        poseWarningIssued = false;
-        ensurePoseValidWithWarning();
+        lastPoseWarningReason = null;
+        lastUsablePose = null;
     }
 
     @Override
     public void execute() {
-        if (!ensurePoseValidWithWarning()) {
+        final Pose2d poseForTargeting = getPoseForTargeting();
+        if (poseForTargeting == null) {
             swerve.requestIdle();
             return;
         }
         final ManualDriveInput input = inputSmoother.getSmoothedInput();
-        final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective();
+        final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective(poseForTargeting);
         swerve.setControl(
             fieldCentricFacingAngleRequest
                 .withVelocityX(Driving.kMaxSpeed.times(input.forward))
@@ -119,16 +103,112 @@ public class AimAndDriveCommand extends Command {
         return false;
     }
 
-    private boolean ensurePoseValidWithWarning() {
-        final boolean valid = currentPoseIsValid();
-        if (!valid) {
-            if (!poseWarningIssued) {
-                DriverStation.reportWarning("Auto aim blocked: robot pose outside field bounds", false);
-                poseWarningIssued = true;
-            }
-        } else {
-            poseWarningIssued = false;
+    private Pose2d getPoseForTargeting() {
+        final Pose2d currentPose = swerve.getState().Pose;
+        final PoseValidationResult validation = validatePose(currentPose);
+        if (validation.valid()) {
+            lastPoseWarningReason = null;
+            lastUsablePose = currentPose;
+            return currentPose;
         }
-        return valid;
+
+        emitPoseWarning(validation);
+
+        Pose2d fallback = null;
+        if (validation.reason() == PoseInvalidReason.OUTSIDE_FIELD && currentPose != null) {
+            final Translation2d translation = currentPose.getTranslation();
+            final double x = translation.getX();
+            final double y = translation.getY();
+            if (Double.isFinite(x) && Double.isFinite(y)) {
+                fallback = clampPoseToField(currentPose);
+            }
+        }
+
+        if (fallback == null) {
+            fallback = lastUsablePose;
+        }
+
+        if (fallback != null) {
+            lastUsablePose = fallback;
+        }
+        return fallback;
+    }
+
+    private Pose2d getCachedPoseForAiming() {
+        final Pose2d currentPose = swerve.getState().Pose;
+        final PoseValidationResult validation = validatePose(currentPose);
+        if (validation.valid()) {
+            return currentPose;
+        }
+        return lastUsablePose;
+    }
+
+    private Pose2d clampPoseToField(Pose2d pose) {
+        final Translation2d translation = pose.getTranslation();
+        final double clampedX = MathUtil.clamp(translation.getX(), 0.0, Landmarks.fieldLength);
+        final double clampedY = MathUtil.clamp(translation.getY(), 0.0, Landmarks.fieldWidth);
+        if (clampedX == translation.getX() && clampedY == translation.getY()) {
+            return pose;
+        }
+        return new Pose2d(clampedX, clampedY, pose.getRotation());
+    }
+
+    private PoseValidationResult validatePose(Pose2d pose) {
+        if (pose == null) {
+            return new PoseValidationResult(false, PoseInvalidReason.NULL_POSE, Double.NaN, Double.NaN);
+        }
+        final Translation2d translation = pose.getTranslation();
+        final double x = translation.getX();
+        final double y = translation.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return new PoseValidationResult(false, PoseInvalidReason.NON_FINITE_VALUES, x, y);
+        }
+        final boolean insideField = x >= -kPoseEdgeMarginMeters
+            && x <= Landmarks.fieldLength + kPoseEdgeMarginMeters
+            && y >= -kPoseEdgeMarginMeters
+            && y <= Landmarks.fieldWidth + kPoseEdgeMarginMeters;
+        if (!insideField) {
+            return new PoseValidationResult(false, PoseInvalidReason.OUTSIDE_FIELD, x, y);
+        }
+        return new PoseValidationResult(true, null, x, y);
+    }
+
+    private void emitPoseWarning(PoseValidationResult validation) {
+        if (validation.reason() == null || validation.reason() == lastPoseWarningReason) {
+            return;
+        }
+        DriverStation.reportWarning(buildPoseWarningMessage(validation), false);
+        lastPoseWarningReason = validation.reason();
+    }
+
+    private String buildPoseWarningMessage(PoseValidationResult validation) {
+        return String.format(
+            "Auto aim limited (%s). Pose=(%s m, %s m), allowed X [%.2f, %.2f], allowed Y [%.2f, %.2f]",
+            validation.reason().description,
+            formatMeters(validation.xMeters()),
+            formatMeters(validation.yMeters()),
+            -kPoseEdgeMarginMeters,
+            Landmarks.fieldLength + kPoseEdgeMarginMeters,
+            -kPoseEdgeMarginMeters,
+            Landmarks.fieldWidth + kPoseEdgeMarginMeters
+        );
+    }
+
+    private String formatMeters(double value) {
+        return Double.isFinite(value) ? String.format("%.2f", value) : "NaN";
+    }
+
+    private record PoseValidationResult(boolean valid, PoseInvalidReason reason, double xMeters, double yMeters) { }
+
+    private enum PoseInvalidReason {
+        NULL_POSE("pose not yet available"),
+        NON_FINITE_VALUES("pose contains non-finite values"),
+        OUTSIDE_FIELD("pose translation outside field bounds");
+
+        private final String description;
+
+        PoseInvalidReason(String description) {
+            this.description = description;
+        }
     }
 }
