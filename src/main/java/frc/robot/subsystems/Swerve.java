@@ -243,8 +243,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
         Logger.recordOutput("Drive/Pose3d", getPose3d());
-        SmartDashboard.putNumber("Drive/X", getState().Pose.getX());
-        SmartDashboard.putNumber("Drive/Y", getState().Pose.getY());
+        Logger.recordOutput("Drive/X", getState().Pose.getX());
+        Logger.recordOutput("Drive/Y", getState().Pose.getY());
         Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
         Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
         Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
