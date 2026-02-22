@@ -13,6 +13,8 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 
@@ -32,8 +34,18 @@ public class Limelight extends SubsystemBase {
     public Optional<Measurement> getMeasurement(Pose2d currentRobotPose) {
         LimelightHelpers.SetRobotOrientation(name, currentRobotPose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        final PoseEstimate poseEstimate_MegaTag1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-        final PoseEstimate poseEstimate_MegaTag2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
+        boolean isBlue = DriverStation.getAlliance()
+            .map(a -> a == Alliance.Blue)
+            .orElse(true);
+
+        final PoseEstimate poseEstimate_MegaTag1 = isBlue
+            ? LimelightHelpers.getBotPoseEstimate_wpiBlue(name)
+            : LimelightHelpers.getBotPoseEstimate_wpiRed(name);
+        final PoseEstimate poseEstimate_MegaTag2 = isBlue
+            ? LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name)
+            : LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(name);
+
+        
         if (
             poseEstimate_MegaTag1 == null 
                 || poseEstimate_MegaTag2 == null
