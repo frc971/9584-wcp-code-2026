@@ -42,7 +42,7 @@ public class VisionSubsystem extends SubsystemBase {
         List<LimelightHelpers.PoseEstimate> estimates = new ArrayList<>();
         
         for (String llName : llNames) {
-            if (LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
+            if (!LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
                 continue;
             }
             
@@ -89,7 +89,7 @@ public class VisionSubsystem extends SubsystemBase {
         double bestScore = Double.NEGATIVE_INFINITY;
         
         for (String llName : llNames) {
-            if (LimelightHelpers.getTV(llName)) {
+            if (!LimelightHelpers.getTV(llName)) {
                 continue; //if not confident skip
             }
             

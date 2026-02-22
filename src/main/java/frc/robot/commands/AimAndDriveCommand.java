@@ -89,7 +89,7 @@ public class AimAndDriveCommand extends Command {
             return;
         }
         final ManualDriveInput input = inputSmoother.getSmoothedInput();
-        final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective(poseForTargeting);
+        final Rotation2d targetHeading = getTargetHeadingInFieldFrame(poseForTargeting);
         swerve.setControl(
             fieldCentricFacingAngleRequest
                 .withVelocityX(Driving.kMaxSpeed.times(input.forward))
