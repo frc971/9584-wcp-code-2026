@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.List;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -31,10 +32,14 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.LimelightHelpers;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
@@ -50,6 +55,13 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+
+    private VisionSubsystem vision;
+    //uses this to be able to lock angle of drivetrain a certain way
+    private final SwerveRequest.FieldCentricFacingAngle faceAngleRequest =
+    new SwerveRequest.FieldCentricFacingAngle()
+        .withDeadband(0.02)
+        .withRotationalDeadband(0.01);
 
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
@@ -154,6 +166,34 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         return run(() -> this.setControl(requestSupplier.get()));
     }
 
+    //for shooting on the move
+    public Pose2d getPose() {
+        return getState().Pose;
+      }
+  
+      public void setVision(VisionSubsystem vision) {
+        this.vision = vision;
+      }
+  
+      //now we can set the angle that we move at both when we are moving and when we are rotating
+      public void driveFacingAngle(
+        double vxMetersPerSecond,
+        double vyMetersPerSecond,
+        Rotation2d targetAngle
+        ) {
+          setControl(
+            faceAngleRequest
+              .withVelocityX(vxMetersPerSecond)
+              .withVelocityY(vyMetersPerSecond)
+              .withTargetDirection(targetAngle)
+          );
+      }
+  
+      //if robot isnt moving wed use this instead
+      public void lockHeading(Rotation2d targetAngle) {
+        driveFacingAngle(0.0, 0.0, targetAngle);
+      }
+
     @Override
     public void periodic() {
         /*
@@ -177,6 +217,21 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             });
         }
 
+        if (vision != null) {
+            double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
+            
+            // Get all valid estimates from all Limelights
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega);
+            
+            // Add each estimate to the pose estimator with individual std devs
+            for (LimelightHelpers.PoseEstimate est : estimates) {
+                addVisionMeasurement(
+                    est.pose,
+                    est.timestampSeconds,
+                    vision.getVisionStdDevsForEstimate(est)
+                );
+            }
+        }
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
@@ -188,6 +243,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
         Logger.recordOutput("Drive/Pose3d", getPose3d());
+        Logger.recordOutput("Drive/X", getState().Pose.getX());
+        Logger.recordOutput("Drive/Y", getState().Pose.getY());
         Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
         Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
         Logger.recordOutput("Drive/RollDegrees", getRollDegrees());

@@ -62,6 +62,8 @@ public final class Constants {
         public static final int kStowIntake = 9;         // G
         public static final int kHangerUp = 10;          // H
         public static final int kHangerDown = 11;        // J
+        public static final int kHoodForward = 12;       // K
+        public static final int kHoodBackward = 13;      // L
     }
 
     public static class ClimbAlignment {

@@ -38,7 +38,7 @@ public class Hanger extends SubsystemBase {
     public enum Position {
         HOMED(0),
         EXTEND_HOPPER(2),
-        HANGER_EXTEND(6),
+        HANGER_EXTEND(-6), //hanger goes to negative position for some reason, did this to fix, can change later
         HANGER_HOME(0.2);
 
         private final double inches;

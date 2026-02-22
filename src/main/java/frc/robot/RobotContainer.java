@@ -53,6 +53,11 @@ import frc.robot.subsystems.Swerve;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
+import frc.robot.subsystems.VisionSubsystem;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import org.littletonrobotics.junction.Logger;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -68,7 +73,7 @@ public class RobotContainer {
     private final Shooter shooter = new Shooter();
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
-    private final Limelight limelight = new Limelight("limelight");
+    private final VisionSubsystem vision = new VisionSubsystem();
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(
         Driving.kMaxSpeed.in(MetersPerSecond),
@@ -122,8 +127,6 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        limelight.setDefaultCommand(updateVisionCommand());
-
         if (RobotBase.isReal()){
             configureBindings();
         }
@@ -136,6 +139,32 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        swerve.setVision(vision);
+    }
+
+    public void ensureSwervePoseSeeded() {
+        final Pose2d pose = swerve.getState().Pose;
+        if (!isPoseInsideField(pose)) {
+            swerve.resetPose(new Pose2d());
+        }
+        swerve.seedFieldCentric();
+    }
+
+    private boolean isPoseInsideField(Pose2d pose) {
+        if (pose == null) {
+            return false;
+        }
+        final Translation2d translation = pose.getTranslation();
+        final double x = translation.getX();
+        final double y = translation.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return false;
+        }
+        final double margin = 0.1;
+        return x >= -margin
+            && x <= Landmarks.fieldLength + margin
+            && y >= -margin
+            && y <= Landmarks.fieldWidth + margin;
     }
 
     private void configureAutonomous() {
@@ -270,9 +299,9 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
         //    .onTrue(intake.homingCommand());
-        .onTrue(hanger.homingHopperCommand());
+        //.onTrue(hanger.homingHopperCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -282,16 +311,14 @@ public class RobotContainer {
 
         driverRightStickButton().whileTrue(subsystemCommands.autoAim());
         driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
-        driverBButton().onTrue(Commands.runOnce(() -> {
-            if (manualDriveCommand != null) {
-                manualDriveCommand.toggleRobotCentricMode();
-            }
-        }));
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+
+        driver.y().onTrue(hood.positionCommand(0.9)); //maximum
+        driver.a().onTrue(hood.positionCommand(0.01)); //minimum
     }
 
     private void configureSimBindings() {
@@ -361,6 +388,12 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kHangerDown)
             .or(driverPovRight())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        simButton(Constants.SimControllerButtons.kHoodForward)
+            .or(driver.y())
+            .onTrue(hood.positionCommand(0.75));
+        simButton(Constants.SimControllerButtons.kHoodBackward)
+            .or(driver.a())
+            .onTrue(hood.positionCommand(0.25));
     }
 
     private double getSimForwardInput() {
@@ -466,21 +499,6 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
-    }
-
-    private Command updateVisionCommand() {
-        return limelight.run(() -> {
-            final Pose2d currentRobotPose = swerve.getState().Pose;
-            final Optional<Limelight.Measurement> measurement = limelight.getMeasurement(currentRobotPose);
-            measurement.ifPresent(m -> {
-                swerve.addVisionMeasurement(
-                    m.poseEstimate.pose, 
-                    m.poseEstimate.timestampSeconds,
-                    m.standardDeviations
-                );
-            });
-        })
-        .ignoringDisable(true);
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
