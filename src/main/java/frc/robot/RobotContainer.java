@@ -50,6 +50,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
@@ -91,6 +92,9 @@ public class RobotContainer {
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
     private boolean simRobotCentricMode = false;
+
+    private final VisionSubsystem vision = new VisionSubsystem(
+    () -> swerve.getState().Pose.getRotation().getDegrees());
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
