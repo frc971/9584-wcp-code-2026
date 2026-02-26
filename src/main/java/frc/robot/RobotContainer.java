@@ -50,6 +50,7 @@ import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
@@ -91,6 +92,9 @@ public class RobotContainer {
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
     private boolean simRobotCentricMode = false;
+
+    private final VisionSubsystem vision = new VisionSubsystem(
+    () -> swerve.getState().Pose.getRotation().getDegrees());
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
@@ -287,6 +291,7 @@ public class RobotContainer {
                 manualDriveCommand.toggleRobotCentricMode();
             }
         }));
+        driverXButton().whileTrue(subsystemCommands.outtake());
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
@@ -427,6 +432,10 @@ public class RobotContainer {
 
     private Trigger driverBButton() {
         return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kB.value));
+    }
+    
+    private Trigger driverXButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kX.value));
     }
 
     private Trigger driverPovUp() {

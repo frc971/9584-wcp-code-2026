@@ -37,6 +37,7 @@ public class Shooter extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     private double dashboardTargetRPM = 4000.0;
+    private static final double minRPM = 1000.0; //so flywheels never fully slow down - dont need to use if it kills a battery too fast
 
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
@@ -45,7 +46,7 @@ public class Shooter extends SubsystemBase {
         motors = List.of(leftMotor, middleMotor, rightMotor);
 
         configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 120, 70);
-        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 160, 90);
+        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 120, 70);
         configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 120, 70);
 
         motors.forEach(SimDeviceRegistrar::registerTalonFX);
@@ -82,10 +83,11 @@ public class Shooter extends SubsystemBase {
     }
 
     public void setRPM(double rpm) {
+        double effectiveRPM = Math.max(rpm, minRPM);
         for (final TalonFX motor : motors) {
             motor.setControl(
                 velocityRequest
-                    .withVelocity(RPM.of(rpm))
+                    .withVelocity(RPM.of(effectiveRPM))
             );
         }
     }
@@ -100,7 +102,7 @@ public class Shooter extends SubsystemBase {
     }
 
     public void stop() {
-        setPercentOutput(0.0);
+        setRPM(minRPM);
     }
 
     public Command spinUpCommand(double rpm) {
