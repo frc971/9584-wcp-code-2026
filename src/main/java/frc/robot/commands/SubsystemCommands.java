@@ -122,7 +122,7 @@ public final class SubsystemCommands {
         );
     }
 
-    private Command outtake(){
+    public Command outtake(){
         System.out.println("=========Outtake========");
         return Commands.parallel(
                 intake.outtakeCommand(),

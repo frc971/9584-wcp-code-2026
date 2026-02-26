@@ -291,6 +291,7 @@ public class RobotContainer {
                 manualDriveCommand.toggleRobotCentricMode();
             }
         }));
+        driverXButton().whileTrue(subsystemCommands.outtake());
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
@@ -431,6 +432,10 @@ public class RobotContainer {
 
     private Trigger driverBButton() {
         return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kB.value));
+    }
+    
+    private Trigger driverXButton() {
+        return new Trigger(() -> isDriverControllerConnected() && driver.getHID().getRawButton(XboxController.Button.kX.value));
     }
 
     private Trigger driverPovUp() {
