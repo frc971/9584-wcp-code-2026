@@ -23,7 +23,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Floor extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        FEED(0.83);
+        FEED(0.83),
+        SPIT(-0.83);
 
         private final double percentOutput;
 
@@ -71,6 +72,11 @@ public class Floor extends SubsystemBase {
     public Command feedCommand() {
         System.out.println("================Floor Feed Command");
         return startEnd(() -> {System.out.println("Starting floor feed"); set(Speed.FEED);}, () -> {System.out.println("stopping floor feed"); set(Speed.STOP);});
+    }
+
+    public Command spitCommand(){
+        System.out.println("=================Floor Spit Command");
+        return startEnd(() -> {System.out.println("Starting floor spit"); set(Speed.SPIT);}, () -> {System.out.println("stopping floor spit"); set(Speed.STOP);});
     }
 
     @Override

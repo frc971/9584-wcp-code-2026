@@ -121,4 +121,12 @@ public final class SubsystemCommands {
             )
         );
     }
+
+    private Command outtake(){
+        System.out.println("=========Outtake========");
+        return Commands.parallel(
+                intake.outtakeCommand(),
+                floor.spitCommand()
+        );
+    }
 }
