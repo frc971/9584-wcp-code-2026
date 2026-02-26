@@ -219,9 +219,10 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
 
         if (vision != null) {
             double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
-            
+            double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
+
             // Get all valid estimates from all Limelights
-            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega);
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
             
             // Add each estimate to the pose estimator with individual std devs
             for (LimelightHelpers.PoseEstimate est : estimates) {

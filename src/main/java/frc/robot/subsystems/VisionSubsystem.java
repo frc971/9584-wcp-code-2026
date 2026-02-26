@@ -39,14 +39,17 @@ public class VisionSubsystem extends SubsystemBase {
         // This runs 50 times a second on the robot
     }
 
-    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates(double maxOmega) {
+    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates(double maxOmega, double gyroYawDegrees) {
         List<LimelightHelpers.PoseEstimate> estimates = new ArrayList<>();
-        
+
         for (String llName : llNames) {
+            // MegaTag2 requires the robot's gyro orientation to compute pose
+            LimelightHelpers.SetRobotOrientation(llName, gyroYawDegrees, 0, 0, 0, 0, 0);
+
             if (!LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
                 continue;
             }
-            
+
             LimelightHelpers.PoseEstimate estimate =
                 LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
             
