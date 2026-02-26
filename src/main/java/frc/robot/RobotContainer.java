@@ -293,8 +293,8 @@ public class RobotContainer {
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        driver.y().onTrue(hood.moveHoodCommand(hoodPercentOutput));
-        driver.a().onTrue(hood.moveHoodCommand(-hoodPercentOutput));
+        driver.y().onTrue(hood.positionCommand(0.77)); 
+        driver.a().onTrue(hood.positionCommand(0.01));
     }
 
     private void configureSimBindings() {
@@ -369,10 +369,10 @@ public class RobotContainer {
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
         simButton(Constants.SimControllerButtons.kHoodForward)
             .or(driver.y())
-            .onTrue(hood.moveHoodCommand(hoodPercentOutput));
+            .onTrue(hood.positionCommand(0.77));
         simButton(Constants.SimControllerButtons.kHoodBackward)
             .or(driver.a())
-            .onTrue(hood.moveHoodCommand(-hoodPercentOutput));
+            .onTrue(hood.positionCommand(0.01));
     }
 
     private double getSimForwardInput() {
