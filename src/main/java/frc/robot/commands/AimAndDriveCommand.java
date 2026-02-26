@@ -21,14 +21,17 @@ import frc.util.DriveInputSmoother;
 import frc.util.GeometryUtil;
 import frc.util.ManualDriveInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 
 public class AimAndDriveCommand extends Command {
     private static final Angle kAimTolerance = Degrees.of(5);
+    private static final double kDebugPrintIntervalSeconds = 0.5;
 
     private final Swerve swerve;
     private final DriveInputSmoother inputSmoother;
     private static final double kPoseEdgeMarginMeters = 0.1;
     private boolean poseWarningIssued = false;
+    private double lastDebugPrintTimestamp = 0.0;
 
     private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleRequest = new SwerveRequest.FieldCentricFacingAngle()
         .withRotationalDeadband(Driving.kPIDRotationDeadband)
@@ -104,13 +107,35 @@ public class AimAndDriveCommand extends Command {
             swerve.requestIdle();
             return;
         }
+
+        // DEBUG: Print aim diagnostics instead of moving the robot
+        final double now = Timer.getFPGATimestamp();
+        if (now - lastDebugPrintTimestamp >= kDebugPrintIntervalSeconds) {
+            lastDebugPrintTimestamp = now;
+            final Pose2d pose = swerve.getState().Pose;
+            final Translation2d hubPosition = Landmarks.hubPosition();
+            final Rotation2d currentHeading = pose.getRotation();
+            final Rotation2d targetFieldHeading = getTargetHeadingInFieldFrame();
+            final Rotation2d targetOpHeading = getTargetHeadingInOperatorPerspective();
+            final double degreesToTurn = targetOpHeading.getDegrees()
+                - currentHeading.minus(swerve.getOperatorForwardDirection()).getDegrees();
+            System.out.printf(
+                "[AimDebug] Robot=(%.2f, %.2f) heading=%.1f° | Hub=(%.2f, %.2f) | Target(field)=%.1f° Target(op)=%.1f° | Turn=%.1f°%n",
+                pose.getX(), pose.getY(), currentHeading.getDegrees(),
+                hubPosition.getX(), hubPosition.getY(),
+                targetFieldHeading.getDegrees(), targetOpHeading.getDegrees(),
+                degreesToTurn
+            );
+        }
+
+        // If you want to use the above for debugging without the robot moving, comment out below
         final ManualDriveInput input = inputSmoother.getSmoothedInput();
         final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective();
         swerve.setControl(
-            fieldCentricFacingAngleRequest
-                .withVelocityX(Driving.kMaxSpeed.times(input.forward))
-                .withVelocityY(Driving.kMaxSpeed.times(input.left))
-                .withTargetDirection(targetHeading)
+                fieldCentricFacingAngleRequest
+                 .withVelocityX(Driving.kMaxSpeed.times(input.forward))
+                 .withVelocityY(Driving.kMaxSpeed.times(input.left))
+                 .withTargetDirection(targetHeading)
         );
     }
 
