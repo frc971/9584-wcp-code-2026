@@ -31,10 +31,12 @@ public class PrepareShotCommand extends Command {
             )
     );
 
+    private static final double kFixedHoodPosition = 0.9;
+
     static {
-        distanceToShotMap.put(Inches.of(52.0), new Shot(2800, 0.19));
-        distanceToShotMap.put(Inches.of(114.4), new Shot(3275, 0.40));
-        distanceToShotMap.put(Inches.of(165.5), new Shot(3650, 0.48));
+        distanceToShotMap.put(Inches.of(52.0), new Shot(2800, kFixedHoodPosition));
+        distanceToShotMap.put(Inches.of(114.4), new Shot(3275, kFixedHoodPosition));
+        distanceToShotMap.put(Inches.of(165.5), new Shot(3650, kFixedHoodPosition));
     }
 
     private final Shooter shooter;
