@@ -94,8 +94,9 @@ public final class SubsystemCommands {
 
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
-        return shooter.dashboardSpinUpCommand()
-            .deadlineFor(hood.run(() -> hood.setPosition(0.9)))
+        final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
+        return Commands.waitUntil(prepareShotCommand::isReadyToShoot)
+            .deadlineFor(prepareShotCommand)
             .andThen(feed())
             .handleInterrupt(() -> shooter.stop());
     }
