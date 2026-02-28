@@ -22,18 +22,20 @@ public class Hood extends SubsystemBase {
     private static final Distance kServoLength = Millimeters.of(100);
     private static final LinearVelocity kMaxServoSpeed = Millimeters.of(40).per(Second);
     private static final double kMinPosition = 0.01;
-    private static final double kMaxPosition = 0.4;
+    private static final double kMaxPosition = 0.8;
     private static final double kPositionTolerance = 0.01;
 
-    private final Servo servo;
+    private final Servo leftServo, rightServo;
 
     private double currentPosition = 0.01;
     private double targetPosition = 0.01;
     private Time lastUpdateTime = Seconds.of(0);
 
     public Hood() {
-        servo = new Servo(Ports.hoodPort);
-        servo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
+        leftServo = new Servo(Ports.leftServoPort);
+        rightServo = new Servo(Ports.rightServoPort);
+        leftServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
+        rightServo.setBoundsMicroseconds(2000, 1800, 1500, 1200, 1000);
         setPosition(currentPosition);
         SmartDashboard.putData(this);
     }
@@ -41,7 +43,8 @@ public class Hood extends SubsystemBase {
     /** Expects a position between 0.0 and 1.0 */
     public void setPosition(double position) {
         final double clampedPosition = MathUtil.clamp(position, kMinPosition, kMaxPosition);
-        servo.set(clampedPosition);
+        leftServo.set(clampedPosition);
+        rightServo.set(clampedPosition);
         targetPosition = clampedPosition;
     }
 
@@ -81,6 +84,8 @@ public class Hood extends SubsystemBase {
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
         builder.addDoubleProperty("Current Position", () -> currentPosition, null);
+        builder.addDoubleProperty("Left Servo Position", () -> leftServo.getPosition(), null);
+        builder.addDoubleProperty("Right Servo Position", () -> rightServo.getPosition(), null);
         builder.addDoubleProperty("Target Position", () -> targetPosition, value -> setPosition(value));
     }
 }
