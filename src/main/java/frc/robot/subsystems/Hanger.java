@@ -39,7 +39,7 @@ public class Hanger extends SubsystemBase {
         HOMED(0),
         EXTEND_HOPPER(2),
         HANGER_EXTEND(-6), //hanger goes to negative position for some reason, did this to fix, can change later
-        HANGER_HOME(-0.8);
+        HANGER_HOME(-1.05);
 
         private final double inches;
 
