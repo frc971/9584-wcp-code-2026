@@ -142,7 +142,7 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        swerve.setVision(vision);
+        //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
     public void ensureSwervePoseSeeded() {
