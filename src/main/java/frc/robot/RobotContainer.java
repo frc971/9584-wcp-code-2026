@@ -321,9 +321,12 @@ public class RobotContainer {
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
         //Hood Bindings - Need to tune
-        driver.y().onTrue(hood.positionCommand(0.4)); //middle
+        driver.b().onTrue(hood.positionCommand(0.4)); //middle
         driver.a().onTrue(hood.positionCommand(0.01)); //minimum
         driver.x().onTrue(hood.positionCommand(0.8)); //maximum
+
+        // Reset rotation to 0
+        driver.y().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
     }
 
     private void configureSimBindings() {

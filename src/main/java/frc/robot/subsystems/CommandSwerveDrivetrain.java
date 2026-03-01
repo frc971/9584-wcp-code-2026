@@ -189,6 +189,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       public void lockHeading(Rotation2d targetAngle) {
         driveFacingAngle(0.0, 0.0, targetAngle);
       }
+    
+    public void zeroHeading() {
+        super.resetRotation(Rotation2d.kZero);
+    }
 
     @Override
     public void periodic() {
