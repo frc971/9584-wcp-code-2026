@@ -96,8 +96,7 @@ public final class SubsystemCommands {
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
         return 
-            hood.positionCommand(0.4)
-            .andThen(shooter.dashboardSpinUpCommand())
+            shooter.dashboardSpinUpCommand()
             .andThen(feed())
             .handleInterrupt(() -> shooter.stop());
     }
