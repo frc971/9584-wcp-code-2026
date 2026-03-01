@@ -320,9 +320,10 @@ public class RobotContainer {
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        driver.y().onTrue(hood.positionCommand(0.4)); //maximum
+        //Hood Bindings - Need to tune
+        driver.y().onTrue(hood.positionCommand(0.4)); //middle
         driver.a().onTrue(hood.positionCommand(0.01)); //minimum
-        driver.x().onTrue(subsystemCommands.shootManualFar());
+        driver.x().onTrue(hood.positionCommand(0.8)); //maximum
     }
 
     private void configureSimBindings() {
