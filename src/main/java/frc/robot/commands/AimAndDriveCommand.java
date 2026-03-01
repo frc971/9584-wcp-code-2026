@@ -16,7 +16,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Driving;
 import frc.robot.Landmarks;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.util.DriveInputSmoother;
 import frc.util.GeometryUtil;
 import frc.util.ManualDriveInput;
@@ -27,7 +28,7 @@ public class AimAndDriveCommand extends Command {
     private static final Angle kAimTolerance = Degrees.of(5);
     private static final double kDebugPrintIntervalSeconds = 0.5;
 
-    private final Swerve swerve;
+    private final CommandSwerveDrivetrain swerve;
     private final DriveInputSmoother inputSmoother;
     private static final double kPoseEdgeMarginMeters = 0.1;
     private boolean poseWarningIssued = false;
@@ -42,7 +43,7 @@ public class AimAndDriveCommand extends Command {
         .withHeadingPID(5, 0, 0);
 
     public AimAndDriveCommand(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput
     ) {
@@ -51,7 +52,7 @@ public class AimAndDriveCommand extends Command {
         addRequirements(swerve);
     }
 
-    public AimAndDriveCommand(Swerve swerve) {
+    public AimAndDriveCommand(CommandSwerveDrivetrain swerve) {
         this(swerve, () -> 0, () -> 0);
     }
 

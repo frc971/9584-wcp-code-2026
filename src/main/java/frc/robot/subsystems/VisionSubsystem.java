@@ -11,7 +11,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers; // Note your specific path
 
 public class VisionSubsystem extends SubsystemBase {
-    private final String[] llNames = {"limelight-shooter", "limelight-backll"};
+    private final String[] llNames = {"limelight-shooter"};
     //private final String[] llNames = {"limelight-backll"};
     private final String primaryLL = "limelight";
 

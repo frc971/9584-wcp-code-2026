@@ -12,6 +12,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -43,7 +44,7 @@ import com.ctre.phoenix6.swerve.SwerveRequest;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
-public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
+public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
     private Notifier m_simNotifier = null;
@@ -70,14 +71,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private final StatusSignal<Angle> pitchSignal;
     private final StatusSignal<Angle> rollSignal;
 
-    public Swerve() {
-        super(
-            TunerConstants.DrivetrainConstants, 
-            0,
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            getSwerveModuleConstants()
-        );
+    public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
+        SwerveModuleConstants<?, ?, ?>... modules) {
+        super(drivetrainConstants, modules);
 
         pitchSignal = getPigeon2().getPitch();
         rollSignal = getPigeon2().getRoll();
