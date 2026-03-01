@@ -55,6 +55,8 @@ import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.Hanger.Position;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import org.littletonrobotics.junction.Logger;
@@ -300,9 +302,9 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
         //    .onTrue(intake.homingCommand());
-        //.onTrue(hanger.homingHopperCommand());
+        .onTrue(hanger.unclimbCommand());
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -320,6 +322,7 @@ public class RobotContainer {
 
         driver.y().onTrue(hood.positionCommand(0.4)); //maximum
         driver.a().onTrue(hood.positionCommand(0.01)); //minimum
+        driver.x().onTrue(subsystemCommands.shootManualFar());
     }
 
     private void configureSimBindings() {

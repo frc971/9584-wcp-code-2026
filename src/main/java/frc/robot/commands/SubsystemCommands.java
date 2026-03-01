@@ -101,6 +101,15 @@ public final class SubsystemCommands {
             .handleInterrupt(() -> shooter.stop());
     }
 
+    public Command shootManualFar() {
+        System.out.println("======Shooting manually far from hub");
+        return
+            hood.positionCommand(0.4)
+            .andThen(shooter.dashboardSpinUpCommand())
+            .andThen(feed())
+            .handleInterrupt(() -> shooter.stop());
+    }
+
     public Command autoAlignClimbCommand() {
         System.out.println("=========Auto Align Climbing=========");
         return Commands.defer(
