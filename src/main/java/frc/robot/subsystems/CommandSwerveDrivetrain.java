@@ -191,7 +191,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
       }
     
     public void zeroHeading() {
-        super.resetRotation(Rotation2d.kZero);
+        Rotation2d forward = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+            ? kRedAlliancePerspectiveRotation
+            : kBlueAlliancePerspectiveRotation;
+        super.resetRotation(forward);
+        seedFieldCentric();
     }
 
     @Override
