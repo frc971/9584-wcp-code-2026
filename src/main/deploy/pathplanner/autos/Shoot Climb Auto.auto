@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Shoot Adjust Path"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot Manual"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Half Rotation"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Hanger Extend Command"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RotationToClimb"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Hanger Hook Command"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
