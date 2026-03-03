@@ -173,6 +173,7 @@ public class RobotContainer {
     private void configureAutonomous() {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
+        NamedCommands.registerCommand("Shoot Manually", subsystemCommands.shootManually());
         // Extend the hanger (hooks) to be able to reach the L1 bar
         NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar

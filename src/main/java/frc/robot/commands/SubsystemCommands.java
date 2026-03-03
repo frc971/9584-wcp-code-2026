@@ -95,9 +95,12 @@ public final class SubsystemCommands {
 
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
-        return 
-            shooter.dashboardSpinUpCommand()
+        return
+            Commands.print("Shooting manually") 
+            .andThen(shooter.dashboardSpinUpCommand())
+            .andThen(Commands.print("Done spinning shooter"))
             .andThen(feed())
+            .andThen(Commands.print("Done feeding"))
             .handleInterrupt(() -> shooter.stop());
     }
 
