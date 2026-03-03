@@ -37,9 +37,9 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Hanger extends SubsystemBase {
     public enum Position {
         HOMED(0),
-        EXTEND_HOPPER(2),
-        HANGER_EXTEND(-4), //hanger goes to negative position for some reason, did this to fix, can change later
-        HANGER_HOME(1.05);
+        EXTEND_HOPPER(-2),
+        HANGER_EXTEND(-5.5), //hanger goes to negative position for some reason, did this to fix, can change later
+        HANGER_HOME(-1.05);
 
         private final double inches;
 
