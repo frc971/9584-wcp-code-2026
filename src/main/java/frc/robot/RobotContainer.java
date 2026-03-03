@@ -325,9 +325,13 @@ public class RobotContainer {
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
         //Hood Bindings - Need to tune
-        driver.b().onTrue(hood.positionCommand(0.4)); //middle
-        driver.a().onTrue(hood.positionCommand(0.01)); //minimum
-        driver.y().onTrue(hood.positionCommand(0.8)); //maximum
+        driver.b().onTrue(
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //middle
+        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
+        ); //minimum
+        driver.y().onTrue(hood.positionCommand(0.8).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //maximum
 
         // Reset rotation to 0
         driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
