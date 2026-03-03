@@ -179,6 +179,9 @@ public class RobotContainer {
         // Retract the hanger to hook onto the L1 bar
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
+        NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
+
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
     }

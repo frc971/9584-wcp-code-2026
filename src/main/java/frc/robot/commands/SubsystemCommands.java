@@ -104,6 +104,17 @@ public final class SubsystemCommands {
             .handleInterrupt(() -> shooter.stop());
     }
 
+    public Command shootManualForShootAuto() {
+        System.out.println("========Shooting Manually=========");
+        return
+            Commands.print("Shooting manually") 
+            .andThen(shooter.spinUpCommand(3000.0))
+            .andThen(Commands.print("Done spinning shooter"))
+            .andThen(feed())
+            .andThen(Commands.print("Done feeding"))
+            .handleInterrupt(() -> shooter.stop());
+    }
+
     public Command autoAlignClimbCommand() {
         System.out.println("=========Auto Align Climbing=========");
         return Commands.defer(

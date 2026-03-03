@@ -13,13 +13,19 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 3.0
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "RightTurnToHub"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Set Hood"
           }
         }
       ]
