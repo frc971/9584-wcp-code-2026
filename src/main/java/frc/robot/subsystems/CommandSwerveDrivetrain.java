@@ -221,22 +221,20 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        if (vision != null) {
-            double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
-            double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
-
-            // Get all valid estimates from all Limelights
-            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
-            
-            // Add each estimate to the pose estimator with individual std devs
-            for (LimelightHelpers.PoseEstimate est : estimates) {
-                addVisionMeasurement(
-                    est.pose,
-                    est.timestampSeconds,
-                    vision.getVisionStdDevsForEstimate(est)
-                );
-            }
-        }
+        // Vision pose updates disabled — Limelight stays connected for driver camera
+        // feed but does not update robot localization.
+        // if (vision != null) {
+        //     double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
+        //     double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
+        //     List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+        //     for (LimelightHelpers.PoseEstimate est : estimates) {
+        //         addVisionMeasurement(
+        //             est.pose,
+        //             est.timestampSeconds,
+        //             vision.getVisionStdDevsForEstimate(est)
+        //         );
+        //     }
+        // }
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
