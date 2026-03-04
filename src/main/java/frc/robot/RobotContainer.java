@@ -330,7 +330,7 @@ public class RobotContainer {
         ); //middle
         driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
         ); //minimum
-        driver.y().onTrue(hood.positionCommand(0.8).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //maximum
 
         // Reset rotation to 0
