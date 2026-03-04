@@ -11,8 +11,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -24,6 +26,9 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
@@ -32,6 +37,9 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
     private final RobotContainer m_robotContainer;
     private Command m_autonomousCommand;
+
+    private Timer shiftTimer = new Timer(); //for shift tracking
+    private boolean ourAllianceActive = false;
     
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -104,11 +112,52 @@ public class Robot extends LoggedRobot {
         }
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+
+        shiftTimer.restart(); //set timer to 0
+
+        String gameData = DriverStation.getGameSpecificMessage(); //using FMS
+        if (gameData.length() > 0) {
+            char winner = gameData.charAt(0);
+            Alliance ourAlliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+            // r  means blue starts active (red won auto), b means red starts active (blue won auto)
+            ourAllianceActive = (winner == 'R') == (ourAlliance == Alliance.Blue);
+            //if red won and we are blue, we are active - true = true
+            //if blue won and we are red, we are active - false = false
+            //if blue won and we are blue we are inactive - if red won and we are red we are inactive - false = true, true = false
+        } else {
+            // Game data not received - default to false, driver should set manually
+            ourAllianceActive = false;
+            DriverStation.reportWarning("Game data not received! Shift tracking may be incorrect.", false);
+        }
     }
 
-    //TODO : Em , todo, em yeah, :)
     @Override
-    public void teleopPeriodic() {}
+    public void teleopPeriodic() {
+        double t = shiftTimer.get();
+        // Shift windows (seconds into teleop)
+        double[][] shifts = {{10, 35}, {35, 60}, {60, 85}, {85, 110}};
+        boolean hubActive = false; //are we in our shift?
+        double timeRemaining = 0;
+
+        if(t < 10){ //transition
+            hubActive = true;
+            timeRemaining = 10-t;
+        } else if (t >= 110){ //endgame
+            hubActive = true;
+            timeRemaining = 140-t;
+        } else{ //use alliance shifts to get which one is our shift
+            for (double[] shift : shifts) {
+                if (t >= shift[0] && t < shift[1]) {
+                    hubActive = ourAllianceActive;
+                    timeRemaining = shift[1] - t;
+                    break;
+                }
+            }
+        }
+
+        SmartDashboard.putBoolean("Hub Active", hubActive);
+        SmartDashboard.putNumber("Time Left in Shift", timeRemaining);
+    }
 
     @Override
     public void testInit() {
