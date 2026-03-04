@@ -332,9 +332,12 @@ public class RobotContainer {
         ); //minimum
         driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //maximum
+        driver.x().onTrue(
+            hood.positionCommand(0.2).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000))) //need to test tomorrow
+        ); //from the trench
 
         // Reset rotation to 0
-        driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
+        //driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
     }
 
     private void configureSimBindings() {
