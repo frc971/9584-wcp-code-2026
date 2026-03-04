@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -49,11 +50,13 @@ import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.Hanger.Position;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import org.littletonrobotics.junction.Logger;
@@ -66,7 +69,7 @@ import org.littletonrobotics.junction.Logger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private final Swerve swerve = new Swerve();
+    private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
     private final Intake intake = new Intake();
     private final Floor floor = new Floor();
     private final Feeder feeder = new Feeder();
@@ -139,7 +142,7 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        swerve.setVision(vision);
+        //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
     public void ensureSwervePoseSeeded() {
@@ -170,10 +173,14 @@ public class RobotContainer {
     private void configureAutonomous() {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
+        NamedCommands.registerCommand("Shoot Manually", subsystemCommands.shootManually());
         // Extend the hanger (hooks) to be able to reach the L1 bar
         NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
+
+        NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -299,9 +306,9 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
         //    .onTrue(intake.homingCommand());
-        //.onTrue(hanger.homingHopperCommand());
+        .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -317,8 +324,17 @@ public class RobotContainer {
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        driver.y().onTrue(hood.positionCommand(0.9)); //maximum
-        driver.a().onTrue(hood.positionCommand(0.01)); //minimum
+        //Hood Bindings - Need to tune
+        driver.b().onTrue(
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //middle
+        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
+        ); //minimum
+        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //maximum
+
+        // Reset rotation to 0
+        driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
     }
 
     private void configureSimBindings() {

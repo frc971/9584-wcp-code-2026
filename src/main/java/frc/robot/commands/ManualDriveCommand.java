@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Driving;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.util.DriveInputSmoother;
 import frc.util.ManualDriveInput;
 import frc.util.Stopwatch;
@@ -37,7 +37,7 @@ public class ManualDriveCommand extends Command {
 
     private static final Time kHeadingLockDelay = Seconds.of(0.25); // time to wait before locking heading
 
-    private final Swerve swerve;
+    private final CommandSwerveDrivetrain swerve;
     private final DriveInputSmoother inputSmoother;
     private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
 
@@ -65,7 +65,7 @@ public class ManualDriveCommand extends Command {
     private boolean robotCentricMode = false;
 
     public ManualDriveCommand(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
         DoubleSupplier forwardInput,
         DoubleSupplier leftInput,
         DoubleSupplier rotationInput

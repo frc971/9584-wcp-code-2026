@@ -31,10 +31,19 @@ public class PrepareShotCommand extends Command {
             )
     );
 
-    static {
-        distanceToShotMap.put(Inches.of(52.0), new Shot(2800, 0.19));
-        distanceToShotMap.put(Inches.of(114.4), new Shot(3275, 0.40));
-        distanceToShotMap.put(Inches.of(165.5), new Shot(3650, 0.48));
+    private static final double kFixedHoodPosition = 0.9;
+
+   // static {
+    //    distanceToShotMap.put(Inches.of(52.0), new Shot(2800, 0.19)); //from wcp code
+    //    distanceToShotMap.put(Inches.of(114.4), new Shot(3275, 0.40)); //might want to increase speed by like 20%ish
+    //    distanceToShotMap.put(Inches.of(165.5), new Shot(3650, 0.48));
+   // }
+
+
+     static {
+         distanceToShotMap.put(Inches.of(52.0), new Shot(3080, 0.35)); //increased by 10% - if we can test thats good
+         distanceToShotMap.put(Inches.of(114.4), new Shot(3605, 0.60));
+         distanceToShotMap.put(Inches.of(165.5), new Shot(4015, 0.78));
     }
 
     private final Shooter shooter;

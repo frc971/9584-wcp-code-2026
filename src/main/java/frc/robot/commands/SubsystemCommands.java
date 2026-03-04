@@ -8,16 +8,17 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import com.pathplanner.lib.auto.AutoBuilder;
 import frc.robot.Constants;
 import frc.robot.Landmarks;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
 import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 public final class SubsystemCommands {
-    private final Swerve swerve;
+    private final CommandSwerveDrivetrain swerve;
     private final Intake intake;
     private final Floor floor;
     private final Feeder feeder;
@@ -29,7 +30,7 @@ public final class SubsystemCommands {
     private final DoubleSupplier leftInput;
 
     public SubsystemCommands(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
         Intake intake,
         Floor floor,
         Feeder feeder,
@@ -52,7 +53,7 @@ public final class SubsystemCommands {
     }
 
     public SubsystemCommands(
-        Swerve swerve,
+        CommandSwerveDrivetrain swerve,
         Intake intake,
         Floor floor,
         Feeder feeder,
@@ -94,8 +95,23 @@ public final class SubsystemCommands {
 
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
-        return shooter.dashboardSpinUpCommand()
+        return
+            Commands.print("Shooting manually") 
+            .andThen(shooter.dashboardSpinUpCommand())
+            .andThen(Commands.print("Done spinning shooter"))
             .andThen(feed())
+            .andThen(Commands.print("Done feeding"))
+            .handleInterrupt(() -> shooter.stop());
+    }
+
+    public Command shootManualForShootAuto() {
+        System.out.println("========Shooting Manually=========");
+        return
+            Commands.print("Shooting manually") 
+            .andThen(shooter.spinUpCommand(3000.0))
+            .andThen(Commands.print("Done spinning shooter"))
+            .andThen(feed())
+            .andThen(Commands.print("Done feeding"))
             .handleInterrupt(() -> shooter.stop());
     }
 

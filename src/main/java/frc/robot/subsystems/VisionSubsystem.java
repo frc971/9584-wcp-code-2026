@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers; // Note your specific path
 
 public class VisionSubsystem extends SubsystemBase {
-    private final String[] llNames = {"shooterLL", "backLL"}; //update with actual LL names
+    private final String[] llNames = {}; //removed limelights for localization i think
+    //private final String[] llNames = {"limelight-shooter"};
+    //private final String[] llNames = {"limelight-backll"};
     private final String primaryLL = "limelight";
 
     public VisionSubsystem() {}
@@ -38,14 +40,17 @@ public class VisionSubsystem extends SubsystemBase {
         // This runs 50 times a second on the robot
     }
 
-    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates(double maxOmega) {
+    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates(double maxOmega, double gyroYawDegrees) {
         List<LimelightHelpers.PoseEstimate> estimates = new ArrayList<>();
-        
+
         for (String llName : llNames) {
+            // MegaTag2 requires the robot's gyro orientation to compute pose
+            LimelightHelpers.SetRobotOrientation(llName, gyroYawDegrees, 0, 0, 0, 0, 0);
+
             if (!LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
                 continue;
             }
-            
+
             LimelightHelpers.PoseEstimate estimate =
                 LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
             
