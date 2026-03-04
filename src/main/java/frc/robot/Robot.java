@@ -85,6 +85,7 @@ public class Robot extends LoggedRobot {
     public void autonomousInit() {
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+        m_robotContainer.ensureSwervePoseSeeded();
         if (RobotBase.isSimulation()) {
             m_robotContainer.resetFuelSim();
         }
@@ -104,6 +105,7 @@ public class Robot extends LoggedRobot {
         }
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+        m_robotContainer.ensureSwervePoseSeeded();
     }
 
     //TODO : Em , todo, em yeah, :)

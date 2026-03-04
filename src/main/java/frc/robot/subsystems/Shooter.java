@@ -36,7 +36,7 @@ public class Shooter extends SubsystemBase {
     private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
-    private double dashboardTargetRPM = 4000.0;
+    private double dashboardTargetRPM = 3750.0;
 
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
@@ -101,6 +101,10 @@ public class Shooter extends SubsystemBase {
 
     public void stop() {
         setPercentOutput(0.0);
+    }
+
+    public void setDashboardRPM(double rpm) {
+        dashboardTargetRPM = rpm;
     }
 
     public Command spinUpCommand(double rpm) {

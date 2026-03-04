@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.List;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Seconds;
 
@@ -11,6 +12,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -31,14 +33,18 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
+import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.LimelightHelpers;
+import com.ctre.phoenix6.swerve.SwerveRequest;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
-public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
+public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
     private Notifier m_simNotifier = null;
@@ -51,6 +57,13 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
 
+    private VisionSubsystem vision;
+    //uses this to be able to lock angle of drivetrain a certain way
+    private final SwerveRequest.FieldCentricFacingAngle faceAngleRequest =
+    new SwerveRequest.FieldCentricFacingAngle()
+        .withDeadband(0.02)
+        .withRotationalDeadband(0.01);
+
     private final SwerveRequest.ApplyRobotSpeeds pathApplyRobotSpeeds =
       new SwerveRequest.ApplyRobotSpeeds();
     private final SwerveRequest.Idle idleRequest = new SwerveRequest.Idle();
@@ -58,14 +71,9 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
     private final StatusSignal<Angle> pitchSignal;
     private final StatusSignal<Angle> rollSignal;
 
-    public Swerve() {
-        super(
-            TunerConstants.DrivetrainConstants, 
-            0,
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            VecBuilder.fill(0.1, 0.1, 0.1),
-            getSwerveModuleConstants()
-        );
+    public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
+        SwerveModuleConstants<?, ?, ?>... modules) {
+        super(drivetrainConstants, modules);
 
         pitchSignal = getPigeon2().getPitch();
         rollSignal = getPigeon2().getRoll();
@@ -154,6 +162,42 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         return run(() -> this.setControl(requestSupplier.get()));
     }
 
+    //for shooting on the move
+    public Pose2d getPose() {
+        return getState().Pose;
+      }
+  
+      public void setVision(VisionSubsystem vision) {
+        this.vision = vision;
+      }
+  
+      //now we can set the angle that we move at both when we are moving and when we are rotating
+      public void driveFacingAngle(
+        double vxMetersPerSecond,
+        double vyMetersPerSecond,
+        Rotation2d targetAngle
+        ) {
+          setControl(
+            faceAngleRequest
+              .withVelocityX(vxMetersPerSecond)
+              .withVelocityY(vyMetersPerSecond)
+              .withTargetDirection(targetAngle)
+          );
+      }
+  
+      //if robot isnt moving wed use this instead
+      public void lockHeading(Rotation2d targetAngle) {
+        driveFacingAngle(0.0, 0.0, targetAngle);
+      }
+    
+    public void zeroHeading() {
+        Rotation2d forward = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red
+            ? kRedAlliancePerspectiveRotation
+            : kBlueAlliancePerspectiveRotation;
+        super.resetRotation(forward);
+        seedFieldCentric();
+    }
+
     @Override
     public void periodic() {
         /*
@@ -177,6 +221,20 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
             });
         }
 
+        // Vision pose updates disabled — Limelight stays connected for driver camera
+        // feed but does not update robot localization.
+        // if (vision != null) {
+        //     double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
+        //     double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
+        //     List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+        //     for (LimelightHelpers.PoseEstimate est : estimates) {
+        //         addVisionMeasurement(
+        //             est.pose,
+        //             est.timestampSeconds,
+        //             vision.getVisionStdDevsForEstimate(est)
+        //         );
+        //     }
+        // }
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
@@ -188,6 +246,8 @@ public class Swerve extends TunerSwerveDrivetrain implements Subsystem {
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
         Logger.recordOutput("Drive/Pose3d", getPose3d());
+        Logger.recordOutput("Drive/X", getState().Pose.getX());
+        Logger.recordOutput("Drive/Y", getState().Pose.getY());
         Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
         Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
         Logger.recordOutput("Drive/RollDegrees", getRollDegrees());

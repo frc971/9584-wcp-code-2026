@@ -45,7 +45,7 @@ public final class Constants {
     public static class SimConstants {
         public static final double controllerVelocityCurveExponent = 1.0;
         public static final double controllerRotationCurveExponent = 1.0;
-        public static final double controllerDeadbandPercentage = 0.5;
+        public static final double controllerDeadbandPercentage = 0.2;
     }
 
     public static class SimControllerButtons {
@@ -62,6 +62,8 @@ public final class Constants {
         public static final int kStowIntake = 9;         // G
         public static final int kHangerUp = 10;          // H
         public static final int kHangerDown = 11;        // J
+        public static final int kHoodForward = 12;       // K
+        public static final int kHoodBackward = 13;      // L
     }
 
     public static class ClimbAlignment {

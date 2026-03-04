@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.Driving;
 import frc.robot.commands.ManualDriveCommand;
 import frc.robot.commands.SubsystemCommands;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Feeder;
 import frc.robot.subsystems.Floor;
 import frc.robot.subsystems.Hanger;
@@ -49,10 +50,17 @@ import frc.robot.subsystems.Hood;
 import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.Limelight;
 import frc.robot.subsystems.Shooter;
-import frc.robot.subsystems.Swerve;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.utils.simulation.Dimensions;
 import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
+import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.Hanger.Position;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import org.littletonrobotics.junction.Logger;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -61,14 +69,14 @@ import frc.util.SwerveTelemetry;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-    private final Swerve swerve = new Swerve();
+    private final CommandSwerveDrivetrain swerve = TunerConstants.createDrivetrain();
     private final Intake intake = new Intake();
     private final Floor floor = new Floor();
     private final Feeder feeder = new Feeder();
     private final Shooter shooter = new Shooter();
     private final Hood hood = new Hood();
     private final Hanger hanger = new Hanger();
-    private final Limelight limelight = new Limelight("limelight");
+    private final VisionSubsystem vision = new VisionSubsystem();
 
     private final SwerveTelemetry swerveTelemetry = new SwerveTelemetry(
         Driving.kMaxSpeed.in(MetersPerSecond),
@@ -122,8 +130,6 @@ public class RobotContainer {
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
-        limelight.setDefaultCommand(updateVisionCommand());
-
         if (RobotBase.isReal()){
             configureBindings();
         }
@@ -136,15 +142,45 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        //swerve.setVision(vision); bye bye limelights for vision :)
+    }
+
+    public void ensureSwervePoseSeeded() {
+        final Pose2d pose = swerve.getState().Pose;
+        if (!isPoseInsideField(pose)) {
+            swerve.resetPose(new Pose2d());
+        }
+        swerve.seedFieldCentric();
+    }
+
+    private boolean isPoseInsideField(Pose2d pose) {
+        if (pose == null) {
+            return false;
+        }
+        final Translation2d translation = pose.getTranslation();
+        final double x = translation.getX();
+        final double y = translation.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return false;
+        }
+        final double margin = 0.1;
+        return x >= -margin
+            && x <= Landmarks.fieldLength + margin
+            && y >= -margin
+            && y <= Landmarks.fieldWidth + margin;
     }
 
     private void configureAutonomous() {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
+        NamedCommands.registerCommand("Shoot Manually", subsystemCommands.shootManually());
         // Extend the hanger (hooks) to be able to reach the L1 bar
         NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
+
+        NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -272,7 +308,7 @@ public class RobotContainer {
 
         RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
         //    .onTrue(intake.homingCommand());
-        .onTrue(hanger.homingHopperCommand());
+        .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -282,16 +318,23 @@ public class RobotContainer {
 
         driverRightStickButton().whileTrue(subsystemCommands.autoAim());
         driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
-        driverBButton().onTrue(Commands.runOnce(() -> {
-            if (manualDriveCommand != null) {
-                manualDriveCommand.toggleRobotCentricMode();
-            }
-        }));
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
         driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+
+        //Hood Bindings - Need to tune
+        driver.b().onTrue(
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //middle
+        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
+        ); //minimum
+        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        ); //maximum
+
+        // Reset rotation to 0
+        driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
     }
 
     private void configureSimBindings() {
@@ -361,6 +404,12 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kHangerDown)
             .or(driverPovRight())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        simButton(Constants.SimControllerButtons.kHoodForward)
+            .or(driver.y())
+            .onTrue(hood.positionCommand(0.75));
+        simButton(Constants.SimControllerButtons.kHoodBackward)
+            .or(driver.a())
+            .onTrue(hood.positionCommand(0.25));
     }
 
     private double getSimForwardInput() {
@@ -466,21 +515,6 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
-    }
-
-    private Command updateVisionCommand() {
-        return limelight.run(() -> {
-            final Pose2d currentRobotPose = swerve.getState().Pose;
-            final Optional<Limelight.Measurement> measurement = limelight.getMeasurement(currentRobotPose);
-            measurement.ifPresent(m -> {
-                swerve.addVisionMeasurement(
-                    m.poseEstimate.pose, 
-                    m.poseEstimate.timestampSeconds,
-                    m.standardDeviations
-                );
-            });
-        })
-        .ignoringDisable(true);
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
