@@ -326,14 +326,14 @@ public class RobotContainer {
 
         //Hood Bindings - Need to tune
         driver.b().onTrue(
-            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3550)))
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //middle
         driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
         ); //minimum
-        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3900)))
         ); //maximum
         driver.x().onTrue(
-            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3540)))
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3550)))
         ); //from the trench
 
         // Reset rotation to 0
