@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "Record Auto Start Pose"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Shoot Adjust Path 2"
