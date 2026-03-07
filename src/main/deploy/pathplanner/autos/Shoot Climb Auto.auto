@@ -19,7 +19,26 @@
         {
           "type": "named",
           "data": {
-            "name": "Shoot Manually"
+            "name": "Set Hood to 0.2"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot Manual For Shoot Auto"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 3.0
+                }
+              }
+            ]
           }
         },
         {

@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         //STOW the intake before disable
         HOMED(110),
         STOWED(0),
-        INTAKE(-90),
+        INTAKE(-86),
         AGITATE(-60);
 
         private final double degrees;
@@ -203,9 +203,11 @@ public class Intake extends SubsystemBase {
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance),
+                    //Commands.waitUntil(this::isPositionWithinTolerance),
+                    Commands.waitSeconds(0.3),
                     runOnce(() -> set(Position.INTAKE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance)
+                    //Commands.waitUntil(this::isPositionWithinTolerance),
+                    Commands.waitSeconds(1.0)
                 )
                 .repeatedly()
             )
