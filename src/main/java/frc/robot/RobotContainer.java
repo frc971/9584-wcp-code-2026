@@ -182,6 +182,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
+        NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
