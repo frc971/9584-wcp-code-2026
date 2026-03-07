@@ -180,6 +180,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
@@ -328,7 +329,7 @@ public class RobotContainer {
         driver.b().onTrue(
             hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3550)))
         ); //middle
-        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
+        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
         ); //minimum
         driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //maximum

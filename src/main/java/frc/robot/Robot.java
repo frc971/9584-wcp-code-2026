@@ -105,7 +105,7 @@ public class Robot extends LoggedRobot {
         }
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
-        m_robotContainer.ensureSwervePoseSeeded();
+        //m_robotContainer.ensureSwervePoseSeeded();
     }
 
     //TODO : Em , todo, em yeah, :)
