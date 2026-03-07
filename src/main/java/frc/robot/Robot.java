@@ -91,17 +91,22 @@ public class Robot extends LoggedRobot {
         m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
         m_robotContainer.ensureSwervePoseSeeded();
+        m_robotContainer.autonomousInit();
         if (RobotBase.isSimulation()) {
             m_robotContainer.resetFuelSim();
         }
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         if (m_autonomousCommand != null) {
-            CommandScheduler.getInstance().schedule(m_autonomousCommand);;
+            Logger.recordOutput("Auto/CommandName", m_autonomousCommand.getName());
+            CommandScheduler.getInstance().schedule(m_autonomousCommand);
         }
     }
 
     @Override
-    public void autonomousPeriodic() {}
+    public void autonomousPeriodic() {
+        Logger.recordOutput("Auto/IsRunning",
+            m_autonomousCommand != null && m_autonomousCommand.isScheduled());
+    }
 
     @Override
     public void teleopInit() {

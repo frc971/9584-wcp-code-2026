@@ -127,6 +127,7 @@ public class RobotContainer {
     private ManualDriveCommand manualDriveCommand;
 
     private SendableChooser<Command> autoChooser;
+    private Pose2d autoStartPose = null;
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -181,7 +182,18 @@ public class RobotContainer {
 
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
-        NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
+
+        // Records the pose right after the odometry reset so the shoot command can
+        // verify the robot actually moved before deploying the intake.
+        NamedCommands.registerCommand("Record Auto Start Pose",
+            Commands.runOnce(() -> {
+                autoStartPose = swerve.getState().Pose;
+                Logger.recordOutput("Auto/RecordedStartPose", autoStartPose);
+                System.out.println("Auto: Recorded start pose = " + autoStartPose);
+            }));
+
+        NamedCommands.registerCommand("Shoot Manual For Shoot Auto",
+            subsystemCommands.shootManualForShootAuto(() -> autoStartPose));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -537,5 +549,14 @@ public class RobotContainer {
         swerve.requestIdle();
     }
 
-    public void autonomousInit() {}
+    public void autonomousInit() {
+        autoStartPose = null;
+        Pose2d initPose = swerve.getState().Pose;
+        Logger.recordOutput("Auto/InitPose", initPose);
+        Logger.recordOutput("Auto/SelectedAuto",
+            autoChooser.getSelected() != null ? autoChooser.getSelected().getName() : "none");
+        System.out.println("Auto Init: Pose=" + initPose
+            + " Auto=" + (autoChooser.getSelected() != null
+                ? autoChooser.getSelected().getName() : "none"));
+    }
 }
