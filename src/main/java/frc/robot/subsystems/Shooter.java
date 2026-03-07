@@ -44,9 +44,9 @@ public class Shooter extends SubsystemBase {
         rightMotor = new TalonFX(Ports.kShooterRight, Ports.kRoboRioCANBus);
         motors = List.of(leftMotor, middleMotor, rightMotor);
 
-        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 120, 70);
-        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 160, 90);
-        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 120, 70);
+        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 50, 50);
+        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 50, 50);
+        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 50, 50);
 
         motors.forEach(SimDeviceRegistrar::registerTalonFX);
         SmartDashboard.putData(this);
@@ -105,6 +105,10 @@ public class Shooter extends SubsystemBase {
 
     public void setDashboardRPM(double rpm) {
         dashboardTargetRPM = rpm;
+    }
+
+    public double getDashboardRPM() {
+        return dashboardTargetRPM;
     }
 
     public Command spinUpCommand(double rpm) {

@@ -142,6 +142,9 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        shooter.setDefaultCommand(
+            shooter.run(() -> shooter.setRPM(0.75 * shooter.getDashboardRPM()))
+        );
         //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
@@ -182,6 +185,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
+        NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -306,6 +310,8 @@ public class RobotContainer {
      */
     private void configureBindings() {
         configureManualDriveBindings();
+
+        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop()).onTrue(shooter.spinUpCommand(0.75*shooter.getDashboardRPM()));
 
         RobotModeTriggers.teleop()
         //    .onTrue(intake.homingCommand());
