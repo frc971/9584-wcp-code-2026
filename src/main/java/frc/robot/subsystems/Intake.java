@@ -105,7 +105,7 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(30))
+                    .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(30))
                     .withSupplyCurrentLimitEnable(true)
@@ -141,7 +141,7 @@ public class Intake extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(50))
+                    .withSupplyCurrentLimit(Amps.of(35))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
