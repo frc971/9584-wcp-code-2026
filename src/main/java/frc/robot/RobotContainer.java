@@ -317,7 +317,7 @@ public class RobotContainer {
         driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
         driverRightBumper().whileTrue(subsystemCommands.shootManually());
 
-        driverRightStickButton().whileTrue(subsystemCommands.autoAim());
+        driverRightStickButton().onTrue(subsystemCommands.autoAim());
         driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
 
         driverPovUp().onTrue(hanger.climbCommand());
@@ -380,7 +380,7 @@ public class RobotContainer {
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
-            .whileTrue(simSubsystemCommands.autoAim());
+            .onTrue(simSubsystemCommands.autoAim());
         simButton(Constants.SimControllerButtons.kAutoAlignClimb)
             .or(driverLeftStickButton())
             .onTrue(simSubsystemCommands.autoAlignClimbCommand());

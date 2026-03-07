@@ -30,6 +30,8 @@ public class AimAndDriveCommand extends Command {
 
     private final CommandSwerveDrivetrain swerve;
     private final DriveInputSmoother inputSmoother;
+    private final boolean finishWhenAimed;
+    private final boolean lockTranslation;
     private static final double kPoseEdgeMarginMeters = 0.1;
     private boolean poseWarningIssued = false;
     private double lastDebugPrintTimestamp = 0.0;
@@ -49,11 +51,17 @@ public class AimAndDriveCommand extends Command {
     ) {
         this.swerve = swerve;
         this.inputSmoother = new DriveInputSmoother(forwardInput, leftInput);
+        this.finishWhenAimed = false;
+        this.lockTranslation = false;
         addRequirements(swerve);
     }
 
     public AimAndDriveCommand(CommandSwerveDrivetrain swerve) {
-        this(swerve, () -> 0, () -> 0);
+        this.swerve = swerve;
+        this.inputSmoother = new DriveInputSmoother(() -> 0, () -> 0);
+        this.finishWhenAimed = true;
+        this.lockTranslation = true;
+        addRequirements(swerve);
     }
 
     public boolean isAimed() {
@@ -134,15 +142,15 @@ public class AimAndDriveCommand extends Command {
         final Rotation2d targetHeading = getTargetHeadingInOperatorPerspective();
         swerve.setControl(
                 fieldCentricFacingAngleRequest
-                 .withVelocityX(Driving.kMaxSpeed.times(input.forward))
-                 .withVelocityY(Driving.kMaxSpeed.times(input.left))
+                 .withVelocityX(lockTranslation ? Driving.kMaxSpeed.zero() : Driving.kMaxSpeed.times(input.forward))
+                 .withVelocityY(lockTranslation ? Driving.kMaxSpeed.zero() : Driving.kMaxSpeed.times(input.left))
                  .withTargetDirection(targetHeading)
         );
     }
 
     @Override
     public boolean isFinished() {
-        return false;
+        return finishWhenAimed && isAimed();
     }
 
     private boolean ensurePoseValidWithWarning() {
