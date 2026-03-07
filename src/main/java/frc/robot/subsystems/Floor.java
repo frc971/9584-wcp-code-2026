@@ -6,6 +6,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
+import com.ctre.phoenix6.configs.OpenLoopRampsConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -54,6 +55,10 @@ public class Floor extends SubsystemBase {
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(80))
                     .withSupplyCurrentLimitEnable(true)
+            )
+            .withOpenLoopRamps(
+                new OpenLoopRampsConfigs()
+                    .withVoltageOpenLoopRampPeriod(0.15)
             );
 
         motor.getConfigurator().apply(config);
