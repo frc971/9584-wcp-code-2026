@@ -142,6 +142,9 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        shooter.setDefaultCommand(
+            shooter.run(() -> shooter.setRPM(2700))
+        );
         //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
@@ -180,7 +183,9 @@ public class RobotContainer {
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
+        NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -306,35 +311,39 @@ public class RobotContainer {
     private void configureBindings() {
         configureManualDriveBindings();
 
-        RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop())
+        //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop()).onTrue(shooter.spinUpCommand(0.75*shooter.getDashboardRPM()));
+
+        RobotModeTriggers.teleop()
         //    .onTrue(intake.homingCommand());
         .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
-        driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+        //driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
         driverRightBumper().whileTrue(subsystemCommands.shootManually());
 
-        driverRightStickButton().whileTrue(subsystemCommands.autoAim());
-        driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
+        //driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
-        driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
-        driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        driverPovLeft().whileTrue(subsystemCommands.autoAim());
+        //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
         //Hood Bindings - Need to tune
         driver.b().onTrue(
             hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //middle
-        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
+        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
         ); //minimum
-        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
+        driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3900)))
         ); //maximum
+        driver.x().onTrue(
+            hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3550)))
+        ); //from the trench
 
         // Reset rotation to 0
-        driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
+        //driver.x().onTrue(Commands.runOnce(() -> swerve.zeroHeading()));
     }
 
     private void configureSimBindings() {
