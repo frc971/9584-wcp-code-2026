@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         //STOW the intake before disable
         HOMED(110),
         STOWED(0),
-        INTAKE(-86),
+        INTAKE(-90),
         AGITATE(-60);
 
         private final double degrees;

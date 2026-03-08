@@ -142,9 +142,9 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        shooter.setDefaultCommand(
-            shooter.run(() -> shooter.setRPM(2700))
-        );
+        //shooter.setDefaultCommand(
+        //    shooter.run(() -> shooter.setRPM(2700))
+        //);
         //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
@@ -185,7 +185,8 @@ public class RobotContainer {
         NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
-        NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
+        NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER)
+                                                                .alongWith(Commands.print("====Setting Hanger to EXTEND HOPPER")));
 
         autoChooser = AutoBuilder.buildAutoChooser("Left Neutral Stage Auto");
         SmartDashboard.putData("Auto Mode", autoChooser);
@@ -327,7 +328,7 @@ public class RobotContainer {
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
-        driverPovLeft().whileTrue(subsystemCommands.autoAim());
+        //driverPovLeft().whileTrue(subsystemCommands.autoAim());
         //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
         //Hood Bindings - Need to tune
@@ -542,5 +543,7 @@ public class RobotContainer {
         swerve.requestIdle();
     }
 
-    public void autonomousInit() {}
+    public void autonomousInit() {
+        Logger.recordOutput("Auto/CurrentAuto", autoChooser.getSelected().getName());
+    }
 }

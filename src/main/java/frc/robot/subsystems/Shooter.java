@@ -44,9 +44,9 @@ public class Shooter extends SubsystemBase {
         rightMotor = new TalonFX(Ports.kShooterRight, Ports.kRoboRioCANBus);
         motors = List.of(leftMotor, middleMotor, rightMotor);
 
-        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 60, 40);
-        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 60, 40);
-        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 60, 40);
+        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 60, 30);
+        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 60, 30);
+        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 60, 30);
 
         motors.forEach(SimDeviceRegistrar::registerTalonFX);
         SmartDashboard.putData(this);
@@ -72,8 +72,10 @@ public class Shooter extends SubsystemBase {
             )
             .withSlot0(
                 new Slot0Configs()
-                    .withKP(0.5)
+                    .withKP(1.2)
+                    .withKA(0.01)
                     .withKI(2)
+                    .withKS(0.2)
                     .withKD(0)
                     .withKV(12.0 / KrakenX60.kFreeSpeed.in(RotationsPerSecond)) // 12 volts when requesting max RPS
             );
