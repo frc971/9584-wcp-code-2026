@@ -142,9 +142,9 @@ public class RobotContainer {
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        //shooter.setDefaultCommand(
-        //    shooter.run(() -> shooter.setRPM(2700))
-        //);
+        shooter.setDefaultCommand(
+            shooter.run(() -> shooter.setRPM(2700))
+        );
         //swerve.setVision(vision); bye bye limelights for vision :)
     }
 
