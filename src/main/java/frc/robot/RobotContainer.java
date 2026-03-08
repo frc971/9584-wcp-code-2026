@@ -320,16 +320,15 @@ public class RobotContainer {
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
-        driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+        //driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
         driverRightBumper().whileTrue(subsystemCommands.shootManually());
 
-        driverRightStickButton().whileTrue(subsystemCommands.autoAim());
-        driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
+        //driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
-        driverPovLeft().onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
-        driverPovRight().onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        driverPovLeft().whileTrue(subsystemCommands.autoAim());
+        //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
         //Hood Bindings - Need to tune
         driver.b().onTrue(
