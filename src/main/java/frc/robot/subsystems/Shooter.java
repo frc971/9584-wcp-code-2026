@@ -44,9 +44,9 @@ public class Shooter extends SubsystemBase {
         rightMotor = new TalonFX(Ports.kShooterRight, Ports.kRoboRioCANBus);
         motors = List.of(leftMotor, middleMotor, rightMotor);
 
-        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 40, 40);
-        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 40, 40);
-        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 40, 40);
+        configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 60, 40);
+        configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 60, 40);
+        configureMotor(rightMotor, InvertedValue.Clockwise_Positive, 60, 40);
 
         motors.forEach(SimDeviceRegistrar::registerTalonFX);
         SmartDashboard.putData(this);
