@@ -69,7 +69,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RotationToClimb"
+            "pathName": "Climb Adjust"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AdjustToClimb"
           }
         },
         {
