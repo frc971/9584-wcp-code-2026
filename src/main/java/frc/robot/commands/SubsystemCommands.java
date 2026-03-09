@@ -106,13 +106,18 @@ public final class SubsystemCommands {
 
     public Command shootManualForShootAuto() {
         System.out.println("========Shooting Manually=========");
-        return
-            Commands.print("Shooting manually") 
-            .andThen(shooter.spinUpCommand(3000.0))
-            .andThen(Commands.print("Done spinning shooter"))
+        Command spinUp = Commands.startEnd(
+            () -> shooter.setRPM(3000.0),
+            shooter::stop,
+            shooter
+        );
+        Command feedWhenReady = Commands.waitUntil(shooter::isVelocityWithinTolerance)
             .andThen(feed())
-            .andThen(Commands.print("Done feeding"))
-            .handleInterrupt(() -> shooter.stop());
+            .andThen(Commands.print("Done feeding"));
+        return Commands.sequence(
+            Commands.print("Shooting manually"),
+            Commands.parallel(spinUp, feedWhenReady)
+        );
     }
 
     public Command autoAlignClimbCommand() {

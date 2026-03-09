@@ -7,13 +7,51 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot Adjust Path"
+            "pathName": "Shoot Adjust Path 2"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Extend Hopper"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              }
+            ]
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "Shoot Manually"
+            "name": "Set Hood to 0.2"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot Manual For Shoot Auto"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 5.0
+                }
+              }
+            ]
           }
         },
         {
@@ -31,7 +69,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RotationToClimb"
+            "pathName": "Climb Adjust"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AdjustToClimb"
           }
         },
         {
