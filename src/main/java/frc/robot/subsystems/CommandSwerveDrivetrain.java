@@ -262,13 +262,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         for (int i = 0; i < 4; i++) {
             // 2. Extract Stator Current (the current actually doing work in the motor)
             // You can use getSupplyCurrent() instead if you want to track battery drain.
-            driveCurrents[i] = modules[i].getDriveMotor().getStatorCurrent().getValueAsDouble();
-            steerCurrents[i] = modules[i].getSteerMotor().getStatorCurrent().getValueAsDouble();
+            driveCurrents[i] = modules[i].getDriveMotor().getSupplyCurrent().getValueAsDouble();
+            steerCurrents[i] = modules[i].getSteerMotor().getSupplyCurrent().getValueAsDouble();
         }
 
         // 3. Log the arrays to AdvantageKit
-        Logger.recordOutput("Drive/DriveStatorCurrents", driveCurrents);
-        Logger.recordOutput("Drive/SteerStatorCurrents", steerCurrents);
+        Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
+        Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);

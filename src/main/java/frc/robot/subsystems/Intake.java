@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         //STOW the intake before disable
         HOMED(110),
         STOWED(0),
-        INTAKE(-90),
+        INTAKE(-90), // If we are on the red alliance, set this to -86. If we are on the blue alliance, set this to -90.
         AGITATE(-60);
 
         private final double degrees;
@@ -105,7 +105,7 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(30))
+                    .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(30))
                     .withSupplyCurrentLimitEnable(true)
@@ -141,7 +141,7 @@ public class Intake extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(50))
+                    .withSupplyCurrentLimit(Amps.of(35))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -203,9 +203,11 @@ public class Intake extends SubsystemBase {
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance),
+                    //Commands.waitUntil(this::isPositionWithinTolerance),
+                    Commands.waitSeconds(0.3),
                     runOnce(() -> set(Position.INTAKE)),
-                    Commands.waitUntil(this::isPositionWithinTolerance)
+                    //Commands.waitUntil(this::isPositionWithinTolerance),
+                    Commands.waitSeconds(1.0)
                 )
                 .repeatedly()
             )
@@ -241,7 +243,7 @@ public class Intake extends SubsystemBase {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
         builder.addDoubleProperty("Angle (degrees)", () -> pivotMotor.getPosition().getValue().in(Degrees), null);
         builder.addDoubleProperty("RPM", () -> rollerMotor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Pivot Stator Current", () -> pivotMotor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Roller Stator Current", () -> rollerMotor.getStatorCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Pivot Supply Current", () -> pivotMotor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Roller Supply Current", () -> rollerMotor.getSupplyCurrent().getValue().in(Amps), null);
     }
 }

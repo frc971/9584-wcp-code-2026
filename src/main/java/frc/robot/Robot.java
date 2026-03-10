@@ -21,6 +21,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.sim.PhysicsSim;
 import frc.robot.utils.simulation.FuelSim;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.pathplanner.lib.commands.PathfindingCommand;
+
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -88,12 +90,13 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
-        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
-        m_robotContainer.ensureSwervePoseSeeded();
-        if (RobotBase.isSimulation()) {
-            m_robotContainer.resetFuelSim();
-        }
+        //m_robotContainer.autonomousInit();
+        //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
+        //m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+        // m_robotContainer.ensureSwervePoseSeeded();
+        // if (RobotBase.isSimulation()) {
+        //     m_robotContainer.resetFuelSim();
+        // }
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
         if (m_autonomousCommand != null) {
             CommandScheduler.getInstance().schedule(m_autonomousCommand);;
@@ -172,6 +175,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void robotInit() {
+        CommandScheduler.getInstance().schedule(PathfindingCommand.warmupCommand());
         if (RobotBase.isSimulation()) {
             DriverStation.silenceJoystickConnectionWarning(true);
         }
