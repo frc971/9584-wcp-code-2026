@@ -145,7 +145,7 @@ public class RobotContainer {
         //shooter.setDefaultCommand(
         //    shooter.run(() -> shooter.setRPM(2700))
         //);
-        //swerve.setVision(vision); bye bye limelights for vision :)
+        swerve.setVision(vision);
     }
 
     public void ensureSwervePoseSeeded() {
