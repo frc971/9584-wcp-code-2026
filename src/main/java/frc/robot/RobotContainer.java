@@ -328,7 +328,7 @@ public class RobotContainer {
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
-        //driverPovLeft().whileTrue(subsystemCommands.autoAim());
+        driverPovLeft().whileTrue(subsystemCommands.autoAim());
         //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
         //Hood Bindings - Need to tune
