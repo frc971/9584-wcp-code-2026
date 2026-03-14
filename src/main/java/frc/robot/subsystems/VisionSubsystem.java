@@ -12,7 +12,7 @@ import frc.robot.Landmarks;
 import frc.robot.LimelightHelpers; // Note your specific path
 
 public class VisionSubsystem extends SubsystemBase {
-    private final String[] llNames = {"limelight-shooter"};
+    private final String[] llNames = {};
     private final String primaryLL = "limelight";
     private static final double kSingleTagAmbiguityThreshold = 0.5;
 
