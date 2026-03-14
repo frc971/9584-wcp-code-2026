@@ -12,7 +12,7 @@ import frc.robot.Landmarks;
 import frc.robot.LimelightHelpers; // Note your specific path
 
 public class VisionSubsystem extends SubsystemBase {
-    private final String[] llNames = {};
+    private final String[] llNames = {"limelight-shooter"};
     private final String primaryLL = "limelight";
     private static final double kSingleTagAmbiguityThreshold = 0.5;
 
@@ -77,6 +77,7 @@ public class VisionSubsystem extends SubsystemBase {
         int tagCount = estimate.tagCount;
 
         double xyStdDev = 0.05 + (0.02 * distance * distance);
+        
         // MegaTag2 already uses the gyro heading to solve for translation, so we
         // must not let vision correct the heading — that creates a feedback loop.
         double thetaStdDev = 999999.0;
@@ -101,7 +102,7 @@ public class VisionSubsystem extends SubsystemBase {
 
             LimelightHelpers.PoseEstimate estimate =
                 LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
-
+            
             if (estimate == null || estimate.tagCount == 0 || !isPoseInsideField(estimate.pose)
                 || hasHighSingleTagAmbiguity(estimate)) {
                 continue;

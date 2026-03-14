@@ -290,6 +290,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // Log heading disagreement between vision and odometry for quick diagnosis
             if (!acceptedEstimates.isEmpty()) {
                 Pose2d bestVisionPose = acceptedEstimates.get(0).pose;
+
+            // Log heading disagreement between vision and odometry for quick diagnosis
+            if (!estimates.isEmpty()) {
+                Pose2d bestVisionPose = estimates.get(0).pose;
                 Pose2d odomPose = getState().Pose;
                 double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
                 double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
@@ -327,6 +331,22 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
         Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
         Logger.recordOutput("Drive/OnBump", isRobotOnBump());
+
+        // 1. Create arrays to hold the current values for all 4 modules
+        double[] driveCurrents = new double[4];
+        double[] steerCurrents = new double[4];
+
+        var modules = getModules(); // Get the array of SwerveModules
+        for (int i = 0; i < 4; i++) {
+            // 2. Extract Stator Current (the current actually doing work in the motor)
+            // You can use getSupplyCurrent() instead if you want to track battery drain.
+            driveCurrents[i] = modules[i].getDriveMotor().getSupplyCurrent().getValueAsDouble();
+            steerCurrents[i] = modules[i].getSteerMotor().getSupplyCurrent().getValueAsDouble();
+        }
+
+        // 3. Log the arrays to AdvantageKit
+        Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
+        Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
