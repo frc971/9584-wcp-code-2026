@@ -76,7 +76,7 @@ public class VisionSubsystem extends SubsystemBase {
         double distance = estimate.avgTagDist;
         int tagCount = estimate.tagCount;
         
-        double xyStdDev = 0.05 + (0.02 * distance * distance);
+        double xyStdDev = 0.02 + (0.02 * distance * distance);
         // MegaTag2 already uses the gyro heading to solve for translation, so we
         // must not let vision correct the heading — that creates a feedback loop.
         double thetaStdDev = 999999.0;
