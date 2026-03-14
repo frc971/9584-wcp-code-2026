@@ -8,11 +8,13 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Landmarks;
 import frc.robot.LimelightHelpers; // Note your specific path
 
 public class VisionSubsystem extends SubsystemBase {
     private final String[] llNames = {"limelight-shooter"};
     private final String primaryLL = "limelight";
+    private static final double kSingleTagAmbiguityThreshold = 0.2;
 
     public VisionSubsystem() {}
 
@@ -55,7 +57,9 @@ public class VisionSubsystem extends SubsystemBase {
             //add estimates with at least 2 tags when spinning fast
             if (estimate != null && estimate.tagCount > 0) {
                 if (maxOmega < 3.0 || estimate.tagCount > 1) {
-                    estimates.add(estimate);
+                    if (isPoseInsideField(estimate.pose) && !hasHighSingleTagAmbiguity(estimate)) {
+                        estimates.add(estimate);
+                    }
                 }
             }
         }
@@ -98,7 +102,8 @@ public class VisionSubsystem extends SubsystemBase {
             LimelightHelpers.PoseEstimate estimate =
                 LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
             
-            if (estimate == null || estimate.tagCount == 0) {
+            if (estimate == null || estimate.tagCount == 0 || !isPoseInsideField(estimate.pose)
+                || hasHighSingleTagAmbiguity(estimate)) {
                 continue;
             }
             
@@ -146,5 +151,29 @@ public class VisionSubsystem extends SubsystemBase {
         }
         
         return totalTags;
+    }
+
+    private boolean isPoseInsideField(Pose2d pose) {
+        if (pose == null) {
+            return false;
+        }
+        final double x = pose.getX();
+        final double y = pose.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return false;
+        }
+        final double margin = 0.1;
+        return x >= -margin
+            && x <= Landmarks.fieldLength + margin
+            && y >= -margin
+            && y <= Landmarks.fieldWidth + margin;
+    }
+
+    private boolean hasHighSingleTagAmbiguity(LimelightHelpers.PoseEstimate estimate) {
+        if (estimate == null || estimate.tagCount != 1 || estimate.rawFiducials == null
+            || estimate.rawFiducials.length == 0) {
+            return false;
+        }
+        return estimate.rawFiducials[0].ambiguity > kSingleTagAmbiguityThreshold;
     }
 }
