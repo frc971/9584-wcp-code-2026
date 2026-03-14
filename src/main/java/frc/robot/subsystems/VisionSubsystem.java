@@ -72,18 +72,17 @@ public class VisionSubsystem extends SubsystemBase {
         double distance = estimate.avgTagDist;
         int tagCount = estimate.tagCount;
         
-        //need to tune prolly this is js made up stuff that claude reccomended
         double xyStdDev = 0.05 + (0.02 * distance * distance);
-        double thetaStdDev = 0.1 + (0.05 * distance);
-        
+        // MegaTag2 already uses the gyro heading to solve for translation, so we
+        // must not let vision correct the heading — that creates a feedback loop.
+        double thetaStdDev = 999999.0;
+
         if (tagCount == 1) { //if we only see 1 tag trust it less
             xyStdDev *= 2.0;
-            thetaStdDev *= 2.5;
         } else if (tagCount >= 5) { //if we see 5 or more (in our alliance zone basically) trust it more
             xyStdDev *= 0.7;
-            thetaStdDev *= 0.7;
         }
-        
+
         return VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev);
     }
 
