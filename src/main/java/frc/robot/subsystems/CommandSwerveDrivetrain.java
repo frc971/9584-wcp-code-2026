@@ -36,6 +36,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import frc.robot.Landmarks;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.subsystems.VisionSubsystem;
@@ -47,6 +48,12 @@ import frc.robot.utils.simulation.SimSwerveConstants;
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
+    //TODO: the limiting error interval, need to test
+    private static final double kMaxVisionTranslationErrorMeters = 0.75;
+    private static final double kMaxVisionHeadingErrorDeg = 15.0;
+    
+    private Pose2d lastValidPose = null;
+    private boolean poseResetWarningIssued = false;
     private Notifier m_simNotifier = null;
     private static double m_lastSimTime;
 
@@ -221,26 +228,93 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             });
         }
 
-        // Vision pose updates disabled — Limelight stays connected for driver camera
-        // feed but does not update robot localization.
-        // if (vision != null) {
-        //     double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
-        //     double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
-        //     List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
-        //     for (LimelightHelpers.PoseEstimate est : estimates) {
-        //         addVisionMeasurement(
-        //             est.pose,
-        //             est.timestampSeconds,
-        //             vision.getVisionStdDevsForEstimate(est)
-        //         );
-        //     }
-        // }
+        if (vision != null) {
+            double omega = Math.abs(getState().Speeds.omegaRadiansPerSecond);
+            double gyroYawDegrees = getState().Pose.getRotation().getDegrees();
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+            List<LimelightHelpers.PoseEstimate> acceptedEstimates = new java.util.ArrayList<>();
+            int rejectedCount = 0;
+            double lastRejectedTranslationErrorM = 0.0;
+            double lastRejectedHeadingErrorDeg = 0.0;
+
+            Logger.recordOutput("Vision/OmegaRadPerSec", omega);
+            Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
+            Logger.recordOutput("Vision/EstimateCount", estimates.size());
+
+            for (LimelightHelpers.PoseEstimate est : estimates) {
+                Pose2d odomPose = getState().Pose;
+                double translationErrorM = est.pose.getTranslation().getDistance(odomPose.getTranslation());
+                double headingErrorDeg = est.pose.getRotation().minus(odomPose.getRotation()).getDegrees();
+                if (Math.abs(headingErrorDeg) > kMaxVisionHeadingErrorDeg
+                    || translationErrorM > kMaxVisionTranslationErrorMeters
+                    || !isPoseInsideField(est.pose)) {
+                    rejectedCount++;
+                    lastRejectedTranslationErrorM = translationErrorM;
+                    lastRejectedHeadingErrorDeg = headingErrorDeg;
+                    continue;
+                }
+                acceptedEstimates.add(est);
+            }
+
+            Pose2d[] visionPoses = new Pose2d[acceptedEstimates.size()];
+            double[] visionStdDevsXY = new double[acceptedEstimates.size()];
+            double[] visionStdDevsTheta = new double[acceptedEstimates.size()];
+            double[] visionTagCounts = new double[acceptedEstimates.size()];
+            double[] visionAvgTagDists = new double[acceptedEstimates.size()];
+            double[] visionLatencies = new double[acceptedEstimates.size()];
+
+            for (int i = 0; i < acceptedEstimates.size(); i++) {
+                LimelightHelpers.PoseEstimate est = acceptedEstimates.get(i);
+                Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
+
+                visionPoses[i] = est.pose;
+                visionStdDevsXY[i] = stdDevs.get(0, 0);
+                visionStdDevsTheta[i] = stdDevs.get(2, 0);
+                visionTagCounts[i] = est.tagCount;
+                visionAvgTagDists[i] = est.avgTagDist;
+                visionLatencies[i] = est.latency;
+
+                addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+            }
+
+            Logger.recordOutput("Vision/Poses", visionPoses);
+            Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
+            Logger.recordOutput("Vision/StdDevsTheta", visionStdDevsTheta);
+            Logger.recordOutput("Vision/TagCounts", visionTagCounts);
+            Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
+            Logger.recordOutput("Vision/Latencies", visionLatencies);
+            Logger.recordOutput("Vision/RejectedCount", rejectedCount);
+            Logger.recordOutput("Vision/RejectedTranslationErrorM", lastRejectedTranslationErrorM);
+            Logger.recordOutput("Vision/RejectedHeadingErrorDeg", lastRejectedHeadingErrorDeg);
+
+            // Log heading disagreement between vision and odometry for quick diagnosis
+            if (!acceptedEstimates.isEmpty()) {
+                Pose2d bestVisionPose = acceptedEstimates.get(0).pose;
+                Pose2d odomPose = getState().Pose;
+                double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
+                double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
+                Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
+                Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            }
+        }
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
             Logger.recordOutput("Drive/Pose", simPose);
         } else {
             Logger.recordOutput("Drive/Pose", getState().Pose);
+        }
+
+        Pose2d currentPose = getState().Pose;
+        if (isPoseInsideField(currentPose)) {
+            lastValidPose = currentPose;
+            poseResetWarningIssued = false;
+        } else if (lastValidPose != null) {
+            resetPose(lastValidPose);
+            if (!poseResetWarningIssued) {
+                DriverStation.reportWarning("Drive pose invalid, resetting to last valid pose", false);
+                poseResetWarningIssued = true;
+            }
         }
 
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
@@ -281,6 +355,22 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Pose3d getPose3d() {
         Pose2d pose2d = getState().Pose;
         return new Pose3d(pose2d.getX(), pose2d.getY(), 0.0, getRobotRotation3d());
+    }
+
+    private boolean isPoseInsideField(Pose2d pose) {
+        if (pose == null) {
+            return false;
+        }
+        final double x = pose.getX();
+        final double y = pose.getY();
+        if (!Double.isFinite(x) || !Double.isFinite(y)) {
+            return false;
+        }
+        final double margin = 0.1;
+        return x >= -margin
+            && x <= Landmarks.fieldLength + margin
+            && y >= -margin
+            && y <= Landmarks.fieldWidth + margin;
     }
 
     public boolean isRobotOnBump() {
