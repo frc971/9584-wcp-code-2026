@@ -41,7 +41,7 @@ public class PrepareShotCommand extends Command {
 
 
      static {
-         distanceToShotMap.put(Inches.of(52.0), new Shot(3080, 0.35)); //increased by 10% - if we can test thats good
+         distanceToShotMap.put(Inches.of(43.5), new Shot(3100, 0.35)); 
          distanceToShotMap.put(Inches.of(114.0), new Shot(3605, 0.60));
          distanceToShotMap.put(Inches.of(139.0), new Shot(4015, 0.78));
          distanceToShotMap.put(Inches.of(156.0), new Shot(4015, 0.78));
