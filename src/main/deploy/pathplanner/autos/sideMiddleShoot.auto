@@ -1,0 +1,49 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Over the bump"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Preapre to intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "intake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "twist"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Return to shoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Back over the bump"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
