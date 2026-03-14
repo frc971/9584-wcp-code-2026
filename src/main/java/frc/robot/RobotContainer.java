@@ -19,6 +19,8 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.util.FlippingUtil;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -299,6 +301,19 @@ public class RobotContainer {
         }
         return selected;
     }
+
+    public void resetPositionForAuto() {
+    if (autoChooser.getSelected() instanceof PathPlannerAuto auto) {
+      Pose2d startingPose = auto.getStartingPose();
+
+      if (DriverStation.getAlliance().isPresent()
+          && DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+        startingPose = FlippingUtil.flipFieldPose(startingPose);
+      }
+
+      swerve.resetPose(startingPose);
+    }
+  }
     
     /**
      * Use this method to define your trigger->command mappings. Triggers can be created via the
