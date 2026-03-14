@@ -290,10 +290,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // Log heading disagreement between vision and odometry for quick diagnosis
             if (!acceptedEstimates.isEmpty()) {
                 Pose2d bestVisionPose = acceptedEstimates.get(0).pose;
-
-            // Log heading disagreement between vision and odometry for quick diagnosis
-            if (!estimates.isEmpty()) {
-                Pose2d bestVisionPose = estimates.get(0).pose;
                 Pose2d odomPose = getState().Pose;
                 double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
                 double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());

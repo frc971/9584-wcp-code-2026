@@ -15,8 +15,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
+import frc.robot.Landmarks;
 
 public class Limelight extends SubsystemBase {
     private final String name;
@@ -34,8 +36,8 @@ public class Limelight extends SubsystemBase {
     public Optional<Measurement> getMeasurement(Pose2d currentRobotPose) {
         LimelightHelpers.SetRobotOrientation(name, currentRobotPose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
 
-        final PoseEstimate poseEstimate_MegaTag1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-        final PoseEstimate poseEstimate_MegaTag2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
+        final PoseEstimate poseEstimate_MegaTag1 = getPoseEstimateMegaTag1();
+        final PoseEstimate poseEstimate_MegaTag2 = getPoseEstimateMegaTag2();
         if (
             poseEstimate_MegaTag1 == null 
                 || poseEstimate_MegaTag2 == null
@@ -62,6 +64,20 @@ public class Limelight extends SubsystemBase {
 
     private Pose3d asPose3d(Pose2d pose2d) {
         return new Pose3d(pose2d.getX(), pose2d.getY(), 0.0, new Rotation3d(0.0, 0.0, pose2d.getRotation().getRadians()));
+    }
+
+    private PoseEstimate getPoseEstimateMegaTag1() {
+        Alliance alliance = Landmarks.getAlliance();
+        return alliance == Alliance.Red
+            ? LimelightHelpers.getBotPoseEstimate_wpiRed(name)
+            : LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
+    }
+
+    private PoseEstimate getPoseEstimateMegaTag2() {
+        Alliance alliance = Landmarks.getAlliance();
+        return alliance == Alliance.Red
+            ? LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(name)
+            : LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(name);
     }
 
     public static class Measurement {

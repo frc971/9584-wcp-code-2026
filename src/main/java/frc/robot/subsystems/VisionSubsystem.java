@@ -10,6 +10,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Landmarks;
 import frc.robot.LimelightHelpers; // Note your specific path
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
 public class VisionSubsystem extends SubsystemBase {
     private final String[] llNames = {"limelight-shooter"};
@@ -51,8 +52,7 @@ public class VisionSubsystem extends SubsystemBase {
                 continue;
             }
 
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            LimelightHelpers.PoseEstimate estimate = getPoseEstimateForAlliance(llName);
 
             //add estimates with at least 2 tags when spinning fast
             if (estimate != null && estimate.tagCount > 0) {
@@ -101,7 +101,7 @@ public class VisionSubsystem extends SubsystemBase {
             }
 
             LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+                getPoseEstimateForAlliance(llName);
             
             if (estimate == null || estimate.tagCount == 0 || !isPoseInsideField(estimate.pose)
                 || hasHighSingleTagAmbiguity(estimate)) {
@@ -129,7 +129,7 @@ public class VisionSubsystem extends SubsystemBase {
         //timestamp of best estimate we have
         for (String llName : llNames) {
             LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+                getPoseEstimateForAlliance(llName);
 
             if (estimate != null && estimate.pose.equals(bestPose)) {
                 return estimate.timestampSeconds;
@@ -144,7 +144,7 @@ public class VisionSubsystem extends SubsystemBase {
 
         for (String llName : llNames) {
             LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+                getPoseEstimateForAlliance(llName);
 
             if (estimate != null) {
                 totalTags += estimate.tagCount;
@@ -176,5 +176,12 @@ public class VisionSubsystem extends SubsystemBase {
             return false;
         }
         return estimate.rawFiducials[0].ambiguity > kSingleTagAmbiguityThreshold;
+    }
+
+    private LimelightHelpers.PoseEstimate getPoseEstimateForAlliance(String llName) {
+        Alliance alliance = Landmarks.getAlliance();
+        return alliance == Alliance.Red
+            ? LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(llName)
+            : LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
     }
 }
