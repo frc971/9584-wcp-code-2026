@@ -7,6 +7,8 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Landmarks;
 import frc.robot.LimelightHelpers; // Note your specific path
@@ -51,8 +53,7 @@ public class VisionSubsystem extends SubsystemBase {
                 continue;
             }
 
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            LimelightHelpers.PoseEstimate estimate = getPoseEstimate(llName);
             
             //add estimates with at least 2 tags when spinning fast
             if (estimate != null && estimate.tagCount > 0) {
@@ -99,8 +100,7 @@ public class VisionSubsystem extends SubsystemBase {
                 continue; //if not confident skip
             }
             
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            LimelightHelpers.PoseEstimate estimate = getPoseEstimate(llName);
             
             if (estimate == null || estimate.tagCount == 0 || !isPoseInsideField(estimate.pose)
                 || hasHighSingleTagAmbiguity(estimate)) {
@@ -127,8 +127,7 @@ public class VisionSubsystem extends SubsystemBase {
         
         //timestamp of best estimate we have
         for (String llName : llNames) {
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            LimelightHelpers.PoseEstimate estimate = getPoseEstimate(llName);
             
             if (estimate != null && estimate.pose.equals(bestPose)) {
                 return estimate.timestampSeconds;
@@ -142,8 +141,7 @@ public class VisionSubsystem extends SubsystemBase {
         int totalTags = 0;
         
         for (String llName : llNames) {
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            LimelightHelpers.PoseEstimate estimate = getPoseEstimate(llName);
             
             if (estimate != null) {
                 totalTags += estimate.tagCount;
@@ -151,6 +149,14 @@ public class VisionSubsystem extends SubsystemBase {
         }
         
         return totalTags;
+    }
+
+    private LimelightHelpers.PoseEstimate getPoseEstimate(String llName) {
+        Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        if (alliance == Alliance.Red) {
+            return LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2(llName);
+        }
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
     }
 
     private boolean isPoseInsideField(Pose2d pose) {
