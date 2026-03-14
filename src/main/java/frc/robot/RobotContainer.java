@@ -145,7 +145,7 @@ public class RobotContainer {
         //shooter.setDefaultCommand(
         //    shooter.run(() -> shooter.setRPM(2700))
         //);
-        //swerve.setVision(vision); bye bye limelights for vision :)
+        swerve.setVision(vision);
     }
 
     public void ensureSwervePoseSeeded() {
@@ -321,7 +321,7 @@ public class RobotContainer {
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
-        //driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
+        driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
         driverRightBumper().whileTrue(subsystemCommands.shootManually());
 
         //driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());

@@ -23,6 +23,7 @@ import frc.util.GeometryUtil;
 import frc.util.ManualDriveInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import org.littletonrobotics.junction.Logger;
 
 public class AimAndDriveCommand extends Command {
     private static final Angle kAimTolerance = Degrees.of(5);
@@ -109,7 +110,7 @@ public class AimAndDriveCommand extends Command {
             return;
         }
 
-        // DEBUG: Print aim diagnostics instead of moving the robot
+        // DEBUG: Print aim diagnostics
         final double now = Timer.getFPGATimestamp();
         if (now - lastDebugPrintTimestamp >= kDebugPrintIntervalSeconds) {
             lastDebugPrintTimestamp = now;
@@ -118,15 +119,26 @@ public class AimAndDriveCommand extends Command {
             final Rotation2d currentHeading = pose.getRotation();
             final Rotation2d targetFieldHeading = getTargetHeadingInFieldFrame();
             final Rotation2d targetOpHeading = getTargetHeadingInOperatorPerspective();
+            final Rotation2d operatorForward = swerve.getOperatorForwardDirection();
             final double degreesToTurn = targetOpHeading.getDegrees()
-                - currentHeading.minus(swerve.getOperatorForwardDirection()).getDegrees();
+                - currentHeading.minus(operatorForward).getDegrees();
+            final String allianceStr = DriverStation.getAlliance()
+                .map(a -> a.toString())
+                .orElse("EMPTY (defaulting to Blue!)");
             System.out.printf(
-                "[AimDebug] Robot=(%.2f, %.2f) heading=%.1f° | Hub=(%.2f, %.2f) | Target(field)=%.1f° Target(op)=%.1f° | Turn=%.1f°%n",
+                "[AimDebug] Alliance=%s | OpForward=%.1f° | Robot=(%.2f, %.2f) heading=%.1f° | Hub=(%.2f, %.2f) | Target(field)=%.1f° Target(op)=%.1f° | Turn=%.1f°%n",
+                allianceStr, operatorForward.getDegrees(),
                 pose.getX(), pose.getY(), currentHeading.getDegrees(),
                 hubPosition.getX(), hubPosition.getY(),
                 targetFieldHeading.getDegrees(), targetOpHeading.getDegrees(),
                 degreesToTurn
             );
+            Logger.recordOutput("Aim/Alliance", allianceStr);
+            Logger.recordOutput("Aim/OpForwardDeg", operatorForward.getDegrees());
+            Logger.recordOutput("Aim/HubPosition", new Pose2d(hubPosition, new Rotation2d()));
+            Logger.recordOutput("Aim/TargetFieldHeadingDeg", targetFieldHeading.getDegrees());
+            Logger.recordOutput("Aim/TargetOpHeadingDeg", targetOpHeading.getDegrees());
+            Logger.recordOutput("Aim/DegreesToTurn", degreesToTurn);
         }
 
         // If you want to use the above for debugging without the robot moving, comment out below

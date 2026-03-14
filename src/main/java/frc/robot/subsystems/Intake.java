@@ -70,7 +70,7 @@ public class Intake extends SubsystemBase {
         }
     }
 
-    private static final double kPivotReduction = 50.0;
+    private static final double kPivotReduction = 62.5;
     private static final AngularVelocity kMaxPivotSpeed = KrakenX60.kFreeSpeed.div(kPivotReduction);
     private static final Angle kPositionTolerance = Degrees.of(5);
 

@@ -19,8 +19,24 @@ public class Landmarks {
     private static final int[] kBlueHubTagIds = {25, 26};
     private static final int[] kRedHubTagIds = {9, 10};
 
+    private static Alliance cachedAlliance = null;
+
+    /**
+     * Returns the cached alliance, polling DriverStation until it becomes available.
+     * Once set, the alliance is locked for the rest of the match.
+     */
+    public static Alliance getAlliance() {
+        if (cachedAlliance == null) {
+            DriverStation.getAlliance().ifPresent(a -> {
+                cachedAlliance = a;
+                DriverStation.reportWarning("Landmarks: alliance locked to " + a, false);
+            });
+        }
+        return cachedAlliance != null ? cachedAlliance : Alliance.Blue;
+    }
+
     public static Translation2d hubPosition() {
-        final Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        final Alliance alliance = getAlliance();
         return alliance == Alliance.Blue ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition) : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
     }
 
@@ -72,7 +88,7 @@ public class Landmarks {
     }
     
     public static Pose2d climbPose() {
-        final Alliance alliance = DriverStation.getAlliance().orElse(Alliance.Blue);
+        final Alliance alliance = getAlliance();
         return alliance == Alliance.Blue ? Constants.ClimbAlignment.kBlueAllianceTargetPose : Constants.ClimbAlignment.kRedAllianceTargetPose;
     }
 }
