@@ -81,6 +81,12 @@
                 "data": {
                   "name": "Shoot Manual with Shot Table"
                 }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 5.0
+                }
               }
             ]
           }
