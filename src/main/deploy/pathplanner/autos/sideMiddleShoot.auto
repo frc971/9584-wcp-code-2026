@@ -13,7 +13,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Prepare to intake"
+            "pathName": "Preapre to intake"
           }
         },
         {
@@ -23,7 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Intake"
+                  "pathName": "intake"
                 }
               },
               {
@@ -38,7 +38,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Twist"
+            "pathName": "twist"
           }
         },
         {
@@ -69,7 +69,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot"
+            "pathName": "shoot"
           }
         },
         {

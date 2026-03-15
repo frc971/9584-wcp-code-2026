@@ -30,6 +30,12 @@
           }
         },
         {
+          "type": "path",
+          "data": {
+            "pathName": "Zone Edge To Outpost"
+          }
+        },
+        {
           "type": "wait",
           "data": {
             "waitTime": 3.0

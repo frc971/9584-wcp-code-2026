@@ -69,12 +69,6 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Climb Adjust"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
             "pathName": "AdjustToClimb"
           }
         },
