@@ -179,6 +179,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
         NamedCommands.registerCommand("Shoot Manually", subsystemCommands.shootManually());
+        NamedCommands.registerCommand("Shoot Manual with Shot Table", subsystemCommands.shootManualWithShotTable());
         // Extend the hanger (hooks) to be able to reach the L1 bar
         NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar
@@ -337,7 +338,8 @@ public class RobotContainer {
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
         driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-        driverRightBumper().whileTrue(subsystemCommands.shootManually());
+        driverRightBumper().whileTrue(subsystemCommands.shootManualWithShotTable());
+        driver.start().whileTrue(subsystemCommands.shootManually());
 
         //driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
 

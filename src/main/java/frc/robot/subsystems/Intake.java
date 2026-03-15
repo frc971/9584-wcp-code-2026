@@ -199,7 +199,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.STOP))
+        return runOnce(() -> set(Speed.INTAKE))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),

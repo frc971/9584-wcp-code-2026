@@ -17,9 +17,26 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
+<<<<<<< HEAD
             "pathName": "Intake"
+=======
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "intake"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              }
+            ]
+>>>>>>> refs/remotes/origin/aydin/auto-debugging
           }
         },
         {
@@ -29,15 +46,53 @@
           }
         },
         {
-          "type": "path",
+          "type": "deadline",
           "data": {
-            "pathName": "Return to shoot"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Return to shoot"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Back over the bump"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "shoot"
+          }
+        },
+        {
+          "type": "race",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "Shoot Manual with Shot Table"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 5.0
+                }
+              }
+            ]
           }
         }
       ]
