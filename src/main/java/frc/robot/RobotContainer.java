@@ -337,7 +337,8 @@ public class RobotContainer {
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
 
         driverRightTrigger().whileTrue(subsystemCommands.aimAndShoot());
-        driverRightBumper().whileTrue(subsystemCommands.shootManually());
+        driverRightBumper().whileTrue(subsystemCommands.shootManualWithShotTable());
+        driver.start().whileTrue(subsystemCommands.shootManually());
 
         //driverLeftStickButton().onTrue(subsystemCommands.autoAlignClimbCommand());
 
