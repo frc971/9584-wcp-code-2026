@@ -344,6 +344,9 @@ public class RobotContainer {
 
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
+
+        driverPovLeft().toggleOnTrue(shooter.spinUpCommand(0.65*shooter.getDashboardRPM()));
+
         //driverPovLeft().whileTrue(subsystemCommands.autoAim());
         //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
