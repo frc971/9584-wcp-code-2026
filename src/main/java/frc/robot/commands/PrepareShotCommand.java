@@ -27,26 +27,21 @@ public class PrepareShotCommand extends Command {
                 Interpolator.forDouble()
                     .interpolate(startValue.shooterRPM, endValue.shooterRPM, t),
                 Interpolator.forDouble()
-                    .interpolate(startValue.hoodPosition, endValue.hoodPosition, t)
+                    .interpolate(startValue.hoodPosition, endValue.hoodPosition, t),
+                Interpolator.forDouble()
+                    .interpolate(startValue.flightTimeSeconds, endValue.flightTimeSeconds, t)
             )
     );
 
-    private static final double kFixedHoodPosition = 0.9;
+    private static final double kFixedHoodPosition = 0.9;    
 
-   // static {
-    //    distanceToShotMap.put(Inches.of(52.0), new Shot(2800, 0.19)); //from wcp code
-    //    distanceToShotMap.put(Inches.of(114.4), new Shot(3275, 0.40)); //might want to increase speed by like 20%ish
-    //    distanceToShotMap.put(Inches.of(165.5), new Shot(3650, 0.48));
-   // }
-
-
-     static {
-         distanceToShotMap.put(Inches.of(16.5), new Shot(3050, 0.2));
-         distanceToShotMap.put(Inches.of(43.5), new Shot(3100, 0.35)); 
-         distanceToShotMap.put(Inches.of(117.5), new Shot(3600, 0.45));
-         distanceToShotMap.put(Inches.of(139.9), new Shot(3400, 0.53));
-         distanceToShotMap.put(Inches.of(156.0), new Shot(3750, 0.55));
-         distanceToShotMap.put(Inches.of(175.0), new Shot(3750,0.60));
+     static { //stolen straight from 6328 lmao
+        distanceToShotMap.put(Inches.of(16.5),  new Shot(3050, 0.20, 0.15));
+        distanceToShotMap.put(Inches.of(43.5),  new Shot(3100, 0.35, 0.20));
+        distanceToShotMap.put(Inches.of(117.5), new Shot(3600, 0.45, 0.90));
+        distanceToShotMap.put(Inches.of(139.9), new Shot(3400, 0.53, 1.09));
+        distanceToShotMap.put(Inches.of(156.0), new Shot(3750, 0.55, 1.10));
+        distanceToShotMap.put(Inches.of(175.0), new Shot(3750, 0.60, 1.11));
     }
 
     private final Shooter shooter;
@@ -68,6 +63,10 @@ public class PrepareShotCommand extends Command {
         final Translation2d robotPosition = robotPoseSupplier.get().getTranslation();
         final Translation2d hubPosition = Landmarks.hubPosition();
         return Meters.of(robotPosition.getDistance(hubPosition));
+    }
+
+    public static double getFlightTimeForDistance(Distance distance) {
+        return distanceToShotMap.get(distance).flightTimeSeconds;
     }
 
     @Override
@@ -92,10 +91,12 @@ public class PrepareShotCommand extends Command {
     public static class Shot {
         public final double shooterRPM;
         public final double hoodPosition;
+        public final double flightTimeSeconds;
 
-        public Shot(double shooterRPM, double hoodPosition) {
+        public Shot(double shooterRPM, double hoodPosition, double flightTimeSeconds) {
             this.shooterRPM = shooterRPM;
             this.hoodPosition = hoodPosition;
+            this.flightTimeSeconds = flightTimeSeconds;
         }
     }
 }

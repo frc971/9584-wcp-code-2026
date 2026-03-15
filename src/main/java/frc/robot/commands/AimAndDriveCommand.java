@@ -12,7 +12,10 @@ import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import static edu.wpi.first.units.Units.Meters;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Driving;
 import frc.robot.Landmarks;
@@ -34,6 +37,9 @@ public class AimAndDriveCommand extends Command {
     private static final double kPoseEdgeMarginMeters = 0.1;
     private boolean poseWarningIssued = false;
     private double lastDebugPrintTimestamp = 0.0;
+
+    private static final double minSpeed = 1.0;
+
 
     private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleRequest = new SwerveRequest.FieldCentricFacingAngle()
         .withRotationalDeadband(Driving.kPIDRotationDeadband)
@@ -72,9 +78,40 @@ public class AimAndDriveCommand extends Command {
     }
 
     private Rotation2d getTargetHeadingInFieldFrame() {
-        final Translation2d hubPosition = Landmarks.hubPosition();
+        final Translation2d virtualTarget = getVirtualTargetPosition();  // <-- uses virtual target instead of hub directly
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
-        return hubPosition.minus(robotPosition).getAngle();
+        return virtualTarget.minus(robotPosition).getAngle();
+    }
+
+    private Translation2d getVirtualTargetPosition() {
+        final Translation2d hubPosition = Landmarks.hubPosition();
+        final ChassisSpeeds fieldSpeeds = getFieldRelativeSpeeds();
+        final double speed = Math.hypot(fieldSpeeds.vxMetersPerSecond, fieldSpeeds.vyMetersPerSecond);
+
+        if (speed < minSpeed) {
+            return hubPosition; //assume its not moving
+        }
+
+        final double flightTime = estimateFlightTime();
+        final double offsetX = fieldSpeeds.vxMetersPerSecond * flightTime;
+        final double offsetY = fieldSpeeds.vyMetersPerSecond * flightTime;
+        return hubPosition.minus(new Translation2d(offsetX, offsetY));
+    }
+
+    private ChassisSpeeds getFieldRelativeSpeeds() {
+        final ChassisSpeeds robotSpeeds = swerve.getState().Speeds;
+        if (robotSpeeds == null) {
+            return new ChassisSpeeds();
+        }
+        final Rotation2d heading = swerve.getState().Pose.getRotation();
+        return ChassisSpeeds.fromRobotRelativeSpeeds(robotSpeeds, heading);
+    }
+
+    private double estimateFlightTime() { //from updated shot class with TOF - need to redo shot table with this i think :(
+        final Distance dist = Meters.of(
+            Landmarks.hubPosition().getDistance(swerve.getState().Pose.getTranslation())
+        );
+        return PrepareShotCommand.getFlightTimeForDistance(dist);
     }
 
     private boolean isPoseValid(Pose2d pose) {
