@@ -19,9 +19,6 @@
         {
           "type": "deadline",
           "data": {
-<<<<<<< HEAD
-            "pathName": "Intake"
-=======
             "commands": [
               {
                 "type": "path",
@@ -36,7 +33,6 @@
                 }
               }
             ]
->>>>>>> refs/remotes/origin/aydin/auto-debugging
           }
         },
         {
