@@ -7,37 +7,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Over the bump"
+            "pathName": "Over the bump reflected"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Prepare to intake"
+            "pathName": "Prepare to intake reflected"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Intake"
+            "pathName": "Intake reflected"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Twist"
+            "pathName": "Twist reflected"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Return to shoot"
+            "pathName": "Return to shoot reflected"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Back over the bump"
+            "pathName": "Back over the bump reflected"
           }
         }
       ]
