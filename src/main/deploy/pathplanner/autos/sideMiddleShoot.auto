@@ -23,7 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "intake"
+                  "pathName": "Intake"
                 }
               },
               {
@@ -69,7 +69,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "shoot"
+            "pathName": "Shoot"
           }
         },
         {
