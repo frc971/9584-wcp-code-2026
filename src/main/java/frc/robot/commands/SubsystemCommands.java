@@ -104,6 +104,16 @@ public final class SubsystemCommands {
             .handleInterrupt(() -> shooter.stop());
     }
 
+    public Command shootManualWithShotTable() {
+        final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
+        return Commands.parallel(
+            Commands.print("Preparing shot"),
+            prepareShotCommand,
+            Commands.waitUntil(() -> prepareShotCommand.isReadyToShoot())
+                .andThen(feed())
+        );
+    }
+
     public Command shootManualForShootAuto() {
         System.out.println("========Shooting Manually=========");
         Command spinUp = Commands.startEnd(
