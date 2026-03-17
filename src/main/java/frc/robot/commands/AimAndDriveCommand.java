@@ -72,8 +72,8 @@ public class AimAndDriveCommand extends Command {
     }
 
     private Rotation2d getTargetHeadingInFieldFrame() {
-        final Translation2d hubPosition = Landmarks.hubPosition();
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
+        final Translation2d hubPosition = Landmarks.getClosestTag(robotPosition);
         return hubPosition.minus(robotPosition).getAngle();
     }
 
