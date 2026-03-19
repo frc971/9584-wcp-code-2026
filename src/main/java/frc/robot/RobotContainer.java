@@ -303,12 +303,24 @@ public class RobotContainer {
         return selected;
     }
 
+    public String getSelectedAutoName() {
+        return SmartDashboard.getString("Auto Mode/selected", "Left Neutral Stage Auto");
+    }
+
     public void resetPositionForAuto() {
     if (autoChooser.getSelected() instanceof PathPlannerAuto auto) {
       Pose2d startingPose = auto.getStartingPose();
+      if (startingPose == null) {
+        if (getSelectedAutoName().equals("sideMiddleShoot")) {
+            startingPose = new Pose2d(3.503, 5.518, Rotation2d.kZero);
+        }
+        else if (getSelectedAutoName().equals("sideMiddleShootReflected")) {
+            startingPose = new Pose2d(3.503, 2.082, Rotation2d.kZero);
+        }       
+      }
 
       if (DriverStation.getAlliance().isPresent()
-          && DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+          && DriverStation.getAlliance().get() == DriverStation.Alliance.Red && startingPose != null) {
         startingPose = FlippingUtil.flipFieldPose(startingPose);
       }
 
