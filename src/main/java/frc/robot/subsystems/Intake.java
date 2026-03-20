@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         //STOW the intake before disable
         HOMED(110),
         STOWED(0),
-        INTAKE(-90), // If we are on the red alliance, set this to -86. If we are on the blue alliance, set this to -90.
+        INTAKE(-88.4), // If we are on the red alliance, set this to -86. If we are on the blue alliance, set this to -90.
         AGITATE(-60);
 
         private final double degrees;
@@ -199,7 +199,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
+        return runOnce(() -> set(Speed.STOP))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),

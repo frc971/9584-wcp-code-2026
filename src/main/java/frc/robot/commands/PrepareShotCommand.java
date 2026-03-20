@@ -29,19 +29,19 @@ public class PrepareShotCommand extends Command {
                 Interpolator.forDouble()
                     .interpolate(startValue.hoodPosition, endValue.hoodPosition, t),
                 Interpolator.forDouble()
-                    .interpolate(startValue.flightTimeSeconds, endValue.flightTimeSeconds, t)
+                 .interpolate(startValue.flightTimeSeconds, endValue.flightTimeSeconds, t)
             )
     );
 
     private static final double kFixedHoodPosition = 0.9;    
 
      static { //stolen straight from 6328 lmao
-        distanceToShotMap.put(Inches.of(16.5),  new Shot(3050, 0.20, 0.15));
-        distanceToShotMap.put(Inches.of(43.5),  new Shot(3100, 0.35, 0.20));
-        distanceToShotMap.put(Inches.of(117.5), new Shot(3600, 0.45, 0.90));
-        distanceToShotMap.put(Inches.of(139.9), new Shot(3400, 0.53, 1.09));
-        distanceToShotMap.put(Inches.of(156.0), new Shot(3750, 0.55, 1.10));
-        distanceToShotMap.put(Inches.of(175.0), new Shot(3750, 0.60, 1.11));
+        distanceToShotMap.put(Inches.of(16.5),  new Shot(3050, 0.20, 0.4));
+        distanceToShotMap.put(Inches.of(43.5),  new Shot(3100, 0.35, 0.6));
+        distanceToShotMap.put(Inches.of(117.5), new Shot(3450, 0.45, 1.0));
+        distanceToShotMap.put(Inches.of(139.9), new Shot(3500, 0.53,1.2));
+        distanceToShotMap.put(Inches.of(156.0), new Shot(3650, 0.55,1.5));
+        distanceToShotMap.put(Inches.of(175.0), new Shot(3750, 0.60, 1.8));
     }
 
     private final Shooter shooter;
