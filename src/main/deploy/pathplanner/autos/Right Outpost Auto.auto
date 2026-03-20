@@ -5,7 +5,13 @@
     "data": {
       "commands": [
         {
-          "type": "race",
+          "type": "path",
+          "data": {
+            "pathName": "RightToZoneEdge"
+          }
+        },
+        {
+          "type": "parallel",
           "data": {
             "commands": [
               {
@@ -15,30 +21,12 @@
                 }
               },
               {
-                "type": "wait",
+                "type": "path",
                 "data": {
-                  "waitTime": 1.5
+                  "pathName": "Zone Edge To Outpost"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RightToZoneEdge"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Zone Edge To Outpost"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 3.0
           }
         },
         {

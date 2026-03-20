@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.9);
+        INTAKE(0.8);
 
         private final double percentOutput;
 
@@ -53,11 +53,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        //STOW the intake before disable
         HOMED(110),
-        STOWED(90),
-        INTAKE(0),
-        AGITATE(60);
+        STOWED(-90),
+        INTAKE(0), // Move intake all the way down before turning robot on
+        AGITATE(-60);
 
         private final double degrees;
 
@@ -199,7 +198,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
+        return runOnce(() -> set(Speed.STOP))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
