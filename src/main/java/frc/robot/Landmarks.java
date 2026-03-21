@@ -16,8 +16,8 @@ public class Landmarks {
     private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
     private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
 
-    private static final int[] kBlueHubTagIds = {25, 26, 21, 24, 27, 18, 19, 20};
-    private static final int[] kRedHubTagIds = {5, 8, 9, 10, 2, 11, 3, 4};
+    private static final int[] kBlueHubTagIds = {20, 21, 26, 18, 19};
+    private static final int[] kRedHubTagIds = {5, 10, 2, 3, 4};
 
     private static Alliance cachedAlliance = null;
 
@@ -90,5 +90,25 @@ public class Landmarks {
     public static Pose2d climbPose() {
         final Alliance alliance = getAlliance();
         return alliance == Alliance.Blue ? Constants.ClimbAlignment.kBlueAllianceTargetPose : Constants.ClimbAlignment.kRedAllianceTargetPose;
+    }
+
+    public static Translation2d getClosestTag(Translation2d robotPosition) {
+        final int[] hubTagIds = getAlliance() == Alliance.Blue ? kBlueHubTagIds : kRedHubTagIds;
+        Translation2d closest = null;
+        double closestDistance = Double.MAX_VALUE;
+
+        for (int id : hubTagIds) {
+            Optional<Pose3d> tagPose = layout.getTagPose(id);
+            if (tagPose.isPresent()) {
+                Translation2d tagPosition = tagPose.get().getTranslation().toTranslation2d();
+                double distance = robotPosition.getDistance(tagPosition);
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closest = tagPosition;
+                }
+            }
+        }
+
+        return closest != null ? closest : hubPosition();
     }
 }
