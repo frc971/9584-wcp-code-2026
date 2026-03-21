@@ -16,8 +16,8 @@ public class Landmarks {
     private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
     private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
 
-    private static final int[] kBlueHubTagIds = {25, 26, 21, 24, 27, 18, 19, 20};
-    private static final int[] kRedHubTagIds = {5, 8, 9, 10, 2, 11, 3, 4};
+    private static final int[] kBlueHubTagIds = {20, 21, 26, 18, 19};
+    private static final int[] kRedHubTagIds = {5, 10, 2, 3, 4};
 
     private static Alliance cachedAlliance = null;
 
