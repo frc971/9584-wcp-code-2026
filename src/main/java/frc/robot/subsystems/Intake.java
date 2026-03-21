@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         HOMED(110),
         STOWED(-90),
         INTAKE(0), // Move intake all the way down before turning robot on
-        AGITATE(-60);
+        AGITATE(-90);
 
         private final double degrees;
 
