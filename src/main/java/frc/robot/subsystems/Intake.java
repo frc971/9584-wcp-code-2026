@@ -54,9 +54,9 @@ public class Intake extends SubsystemBase {
 
     public enum Position {
         HOMED(110),
-        STOWED(-90),
-        INTAKE(0), // Move intake all the way down before turning robot on
-        AGITATE(-90);
+        STOWED(32),
+        INTAKE(106), 
+        AGITATE(80);
 
         private final double degrees;
 
@@ -198,7 +198,7 @@ public class Intake extends SubsystemBase {
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.STOP))
+        return runOnce(() -> set(Speed.INTAKE))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),

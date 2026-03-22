@@ -26,7 +26,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Feeder extends SubsystemBase {
     public enum Speed {
-        FEED(-1000);
+        FEED(-5000);
 
         private final double rpm;
 
