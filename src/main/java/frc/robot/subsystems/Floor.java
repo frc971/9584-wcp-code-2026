@@ -23,7 +23,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Floor extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        FEED(0.9);
+        FEED(0.95);
 
         private final double percentOutput;
 
