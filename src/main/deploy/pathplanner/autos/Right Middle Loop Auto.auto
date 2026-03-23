@@ -42,19 +42,13 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Shoot reflected"
-          }
-        },
-        {
           "type": "race",
           "data": {
             "commands": [
               {
                 "type": "named",
                 "data": {
-                  "name": "Shoot Manual with Shot Table"
+                  "name": "Aim and Shoot"
                 }
               },
               {
