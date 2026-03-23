@@ -5,31 +5,19 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "Over the bump"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Rotate to intake"
-          }
-        },
-        {
-          "type": "deadline",
+          "type": "race",
           "data": {
             "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Long intake"
-                }
-              },
               {
                 "type": "named",
                 "data": {
                   "name": "Intake"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 1.5
                 }
               }
             ]
@@ -38,19 +26,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right to left"
+            "pathName": "RightToZoneEdge"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 3.0
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Back over the bump"
+            "pathName": "RightTurnToHub"
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "shoot"
+            "name": "Set Hood to 0.5"
           }
         },
         {
@@ -60,13 +54,13 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Shoot Manual with Shot Table"
+                  "name": "Shoot Manually"
                 }
               },
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 5.0
+                  "waitTime": 4.0
                 }
               }
             ]
