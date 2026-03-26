@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.8);
+        INTAKE(1.0);
 
         private final double percentOutput;
 
@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         HOMED(110),
         STOWED(32),
         INTAKE(106), 
-        AGITATE(80);
+        AGITATE(60);
 
         private final double degrees;
 
@@ -104,9 +104,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(50))
+                    .withStatorCurrentLimit(Amps.of(60))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(30))
+                    .withSupplyCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withFeedback(
@@ -140,7 +140,7 @@ public class Intake extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(35))
+                    .withSupplyCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -199,6 +199,7 @@ public class Intake extends SubsystemBase {
 
     public Command agitateCommand() {
         return runOnce(() -> set(Speed.INTAKE))
+            .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),

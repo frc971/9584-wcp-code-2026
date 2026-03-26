@@ -52,7 +52,7 @@ public class Floor extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(80))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(25))
+                    .withSupplyCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimitEnable(true)
             );
 
