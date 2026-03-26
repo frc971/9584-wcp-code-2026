@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Driving;
 import frc.robot.Landmarks;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.util.DriveInputSmoother;
 import frc.util.GeometryUtil;
 import frc.util.ManualDriveInput;
@@ -73,7 +72,7 @@ public class AimAndDriveCommand extends Command {
 
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
-        final Translation2d hubPosition = Landmarks.getClosestTag(robotPosition);
+        final Translation2d hubPosition = Landmarks.hubPosition();
         return hubPosition.minus(robotPosition).getAngle();
     }
 
@@ -116,7 +115,6 @@ public class AimAndDriveCommand extends Command {
             lastDebugPrintTimestamp = now;
             final Pose2d pose = swerve.getState().Pose;
             final Translation2d hubPosition = Landmarks.hubPosition();
-            final Translation2d closestTag = Landmarks.getClosestTag(pose.getTranslation());
             final Rotation2d currentHeading = pose.getRotation();
             final Rotation2d targetFieldHeading = getTargetHeadingInFieldFrame();
             final Rotation2d targetOpHeading = getTargetHeadingInOperatorPerspective();
@@ -137,7 +135,6 @@ public class AimAndDriveCommand extends Command {
             Logger.recordOutput("Aim/Alliance", allianceStr);
             Logger.recordOutput("Aim/OpForwardDeg", operatorForward.getDegrees());
             Logger.recordOutput("Aim/HubPosition", new Pose2d(hubPosition, new Rotation2d()));
-            Logger.recordOutput("Aim/ClosestTag", closestTag);
             Logger.recordOutput("Aim/TargetFieldHeadingDeg", targetFieldHeading.getDegrees());
             Logger.recordOutput("Aim/TargetOpHeadingDeg", targetOpHeading.getDegrees());
             Logger.recordOutput("Aim/DegreesToTurn", degreesToTurn);
