@@ -35,9 +35,11 @@ public class Landmarks {
         return cachedAlliance != null ? cachedAlliance : Alliance.Blue;
     }
 
-    public static Translation2d hubPosition() {
+    public static Translation2d hubPosition(Translation2d robotPosition) {
         final Alliance alliance = getAlliance();
-        return alliance == Alliance.Blue ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition) : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
+        return alliance == Alliance.Blue
+            ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition, robotPosition)
+            : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition, robotPosition);
     }
 
     public static final AprilTagFieldLayout layout =
@@ -54,7 +56,6 @@ public class Landmarks {
     public static final Translation2d redDSOffset = redOutpostCenter.plus(new Translation2d(0,fieldWidth - 0.5));
 
     //red hub (backside)
-    public static final Translation2d redHub = computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
     public static final Translation2d redHubOffset = getTagPosition(4);
 
     //blue outpost
@@ -65,7 +66,6 @@ public class Landmarks {
     public static final Translation2d blueDSOffset = blueOutpostCenter.minus(new Translation2d(0, fieldWidth -0.5));
 
     //blue hub (backside)
-    public static final Translation2d blueHub = computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition);
     public static final Translation2d blueHubOffset = getTagPosition(26);
 
     private static Translation2d computeHubPosition(int[] tagIds, Translation2d fallback) {
@@ -92,23 +92,21 @@ public class Landmarks {
         return alliance == Alliance.Blue ? Constants.ClimbAlignment.kBlueAllianceTargetPose : Constants.ClimbAlignment.kRedAllianceTargetPose;
     }
 
-    public static Translation2d getClosestTag(Translation2d robotPosition) {
-        final int[] hubTagIds = getAlliance() == Alliance.Blue ? kBlueHubTagIds : kRedHubTagIds;
-        Translation2d closest = null;
-        double closestDistance = Double.MAX_VALUE;
+    private static Translation2d computeHubPosition(int[] tagIds, Translation2d fallback, Translation2d robotPosition) {
+        Translation2d sum = new Translation2d();
+        double totalWeight = 0;
 
-        for (int id : hubTagIds) {
-            Optional<Pose3d> tagPose = layout.getTagPose(id);
-            if (tagPose.isPresent()) {
-                Translation2d tagPosition = tagPose.get().getTranslation().toTranslation2d();
+        for (int id : tagIds) {
+            Optional<Pose3d> pose = layout.getTagPose(id);
+            if (pose.isPresent()) {
+                Translation2d tagPosition = pose.get().getTranslation().toTranslation2d();
                 double distance = robotPosition.getDistance(tagPosition);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    closest = tagPosition;
-                }
+                double weight = 1.0 / (distance * distance); //can tune this so it works better :)
+                sum = sum.plus(tagPosition.times(weight));
+                totalWeight += weight;
             }
         }
 
-        return closest != null ? closest : hubPosition();
+        return totalWeight > 0 ? sum.div(totalWeight) : fallback;
     }
 }
