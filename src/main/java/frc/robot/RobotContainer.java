@@ -143,10 +143,10 @@ public class RobotContainer {
             configureFuelSim();
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
-        swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        //shooter.setDefaultCommand(
-        //    shooter.run(() -> shooter.setRPM(2700))
-        //);
+        // swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        // shooter.setDefaultCommand(
+        //     shooter.run(() -> shooter.setRPM(750))
+        // );
         swerve.setVision(vision);
     }
 
@@ -179,6 +179,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", intake.intakeCommand());
         NamedCommands.registerCommand("Aim and Shoot", subsystemCommands.aimAndShoot());
         NamedCommands.registerCommand("Shoot Manually", subsystemCommands.shootManually());
+        NamedCommands.registerCommand("Shoot Manual with Shot Table", subsystemCommands.shootManualWithShotTable());
         // Extend the hanger (hooks) to be able to reach the L1 bar
         NamedCommands.registerCommand("Hanger Extend Command", hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
         // Retract the hanger to hook onto the L1 bar
@@ -302,12 +303,24 @@ public class RobotContainer {
         return selected;
     }
 
+    public String getSelectedAutoName() {
+        return SmartDashboard.getString("Auto Mode/selected", "Left Neutral Stage Auto");
+    }
+
     public void resetPositionForAuto() {
     if (autoChooser.getSelected() instanceof PathPlannerAuto auto) {
       Pose2d startingPose = auto.getStartingPose();
+      if (startingPose == null) {
+        if (getSelectedAutoName().equals("sideMiddleShoot")) {
+            startingPose = new Pose2d(3.503, 5.518, Rotation2d.kZero);
+        }
+        else if (getSelectedAutoName().equals("sideMiddleShootReflected")) {
+            startingPose = new Pose2d(3.503, 2.082, Rotation2d.kZero);
+        }       
+      }
 
       if (DriverStation.getAlliance().isPresent()
-          && DriverStation.getAlliance().get() == DriverStation.Alliance.Red) {
+          && DriverStation.getAlliance().get() == DriverStation.Alliance.Red && startingPose != null) {
         startingPose = FlippingUtil.flipFieldPose(startingPose);
       }
 

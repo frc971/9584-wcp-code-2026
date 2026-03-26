@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(0.9);
+        INTAKE(0.8);
 
         private final double percentOutput;
 
@@ -53,11 +53,10 @@ public class Intake extends SubsystemBase {
     }
 
     public enum Position {
-        //STOW the intake before disable
         HOMED(110),
-        STOWED(0),
-        INTAKE(-90), // If we are on the red alliance, set this to -86. If we are on the blue alliance, set this to -90.
-        AGITATE(-60);
+        STOWED(32),
+        INTAKE(106), 
+        AGITATE(80);
 
         private final double degrees;
 
@@ -100,7 +99,7 @@ public class Intake extends SubsystemBase {
         final TalonFXConfiguration config = new TalonFXConfiguration()
             .withMotorOutput(
                 new MotorOutputConfigs()
-                    .withInverted(InvertedValue.CounterClockwise_Positive)
+                    .withInverted(InvertedValue.Clockwise_Positive)
                     .withNeutralMode(NeutralModeValue.Brake)
             )
             .withCurrentLimits(

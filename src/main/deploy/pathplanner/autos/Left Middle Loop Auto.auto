@@ -7,7 +7,44 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot Adjust Path 2"
+            "pathName": "Over the bump"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Rotate to intake"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Loop Intake"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "Intake"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Over bump after loop"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "adjust after bump"
           }
         },
         {
@@ -17,65 +54,16 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Extend Hopper"
+                  "name": "Aim and Shoot"
                 }
               },
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 2.0
+                  "waitTime": 7.0
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Set Hood to 0.2"
-          }
-        },
-        {
-          "type": "race",
-          "data": {
-            "commands": [
-              {
-                "type": "named",
-                "data": {
-                  "name": "Shoot Manual For Shoot Auto"
-                }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 5.0
-                }
-              }
-            ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Half Rotation"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Hanger Extend Command"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "AdjustToClimb"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Hanger Hook Command"
           }
         }
       ]
