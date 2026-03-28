@@ -12,6 +12,8 @@ import java.nio.file.Path;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
@@ -36,6 +38,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
     private final RobotContainer m_robotContainer;
     private Command m_autonomousCommand;
+    private final PowerDistribution pdh = new PowerDistribution(1, ModuleType.kRev);
 
     private Timer shiftTimer = new Timer(); //for shift tracking
     private boolean ourAllianceActive = false;
@@ -70,6 +73,18 @@ public class Robot extends LoggedRobot {
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
+        logPowerDistribution();
+    }
+
+    private void logPowerDistribution() {
+        Logger.recordOutput("Power/TotalCurrent", pdh.getTotalCurrent());
+        Logger.recordOutput("Power/Voltage", pdh.getVoltage());
+        Logger.recordOutput("Power/Temperature", pdh.getTemperature());
+        double[] channelCurrents = new double[24];
+        for (int i = 0; i < 24; i++) {
+            channelCurrents[i] = pdh.getCurrent(i);
+        }
+        Logger.recordOutput("Power/ChannelCurrents", channelCurrents);
     }
 
     @Override
