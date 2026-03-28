@@ -85,6 +85,13 @@ public class Robot extends LoggedRobot {
             channelCurrents[i] = pdh.getCurrent(i);
         }
         Logger.recordOutput("Power/ChannelCurrents", channelCurrents);
+
+        var canStatus = RobotController.getCANStatus();
+        Logger.recordOutput("CAN/BusUtilization", canStatus.percentBusUtilization);
+        Logger.recordOutput("CAN/BusOffCount", canStatus.busOffCount);
+        Logger.recordOutput("CAN/TxFullCount", canStatus.txFullCount);
+        Logger.recordOutput("CAN/ReceiveErrorCount", canStatus.receiveErrorCount);
+        Logger.recordOutput("CAN/TransmitErrorCount", canStatus.transmitErrorCount);
     }
 
     @Override
