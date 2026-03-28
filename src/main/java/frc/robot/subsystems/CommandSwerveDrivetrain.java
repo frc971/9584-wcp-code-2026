@@ -341,6 +341,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
         Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
         Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
+
+        var swerveModules = getModules();
+        for (int i = 0; i < swerveModules.length; i++) {
+            int driveId = swerveModules[i].getDriveMotor().getDeviceID();
+            int steerId = swerveModules[i].getSteerMotor().getDeviceID();
+            Logger.recordOutput("Drive/Faults/Drive" + driveId, swerveModules[i].getDriveMotor().getStickyFaultField().getValueAsDouble());
+            Logger.recordOutput("Drive/Faults/Steer" + steerId, swerveModules[i].getSteerMotor().getStickyFaultField().getValueAsDouble());
+        }
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
