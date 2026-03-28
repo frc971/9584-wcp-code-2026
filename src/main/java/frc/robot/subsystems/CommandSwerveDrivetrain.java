@@ -21,7 +21,6 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,26 +28,25 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
-import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.LimelightHelpers;
-import com.ctre.phoenix6.swerve.SwerveRequest;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
+    private static final double kOdometryUpdateFrequencyHz = 100.0;
+    private static final double kTelemetryUpdateFrequencyHz = 20.0;
     private Notifier m_simNotifier = null;
-    private static double m_lastSimTime;
 
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
@@ -56,6 +54,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private static final Rotation2d kRedAlliancePerspectiveRotation = Rotation2d.k180deg;
     /* Keep track if we've ever applied the operator perspective before or not */
     private boolean m_hasAppliedOperatorPerspective = false;
+    private NeutralModeValue currentDriveNeutralMode = null;
+    private NeutralModeValue currentSteerNeutralMode = null;
 
     private VisionSubsystem vision;
     //uses this to be able to lock angle of drivetrain a certain way
@@ -70,14 +70,25 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final StatusSignal<Angle> pitchSignal;
     private final StatusSignal<Angle> rollSignal;
+    private final List<StatusSignal<Current>> driveSupplyCurrentSignals;
+    private final List<StatusSignal<Current>> steerSupplyCurrentSignals;
+    private final double[] driveCurrents = new double[4];
+    private final double[] steerCurrents = new double[4];
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
         SwerveModuleConstants<?, ?, ?>... modules) {
-        super(drivetrainConstants, modules);
+        super(drivetrainConstants, kOdometryUpdateFrequencyHz, modules);
 
         pitchSignal = getPigeon2().getPitch();
         rollSignal = getPigeon2().getRoll();
-        BaseStatusSignal.setUpdateFrequencyForAll(50.0, pitchSignal, rollSignal);
+        driveSupplyCurrentSignals = createDriveSupplyCurrentSignals();
+        steerSupplyCurrentSignals = createSteerSupplyCurrentSignals();
+
+        BaseStatusSignal.setUpdateFrequencyForAll(kTelemetryUpdateFrequencyHz, pitchSignal, rollSignal);
+        for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
+            driveSupplyCurrentSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
+            steerSupplyCurrentSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
+        }
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
         configureAutoBuilder();
@@ -87,39 +98,46 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public void setSteerNeutralMode(NeutralModeValue neutralMode) {
+        if (neutralMode == currentSteerNeutralMode) {
+            return;
+        }
         for (var module : getModules()) {
             module.getSteerMotor().setNeutralMode(neutralMode);
         }
+        currentSteerNeutralMode = neutralMode;
     }
 
     public void setDriveNeutralMode(NeutralModeValue neutralMode) {
+        if (neutralMode == currentDriveNeutralMode) {
+            return;
+        }
         for (var module : getModules()) {
             module.getDriveMotor().setNeutralMode(neutralMode);
         }
+        currentDriveNeutralMode = neutralMode;
     }
 
     public void requestIdle() {
         setControl(idleRequest);
     }
 
-    // Get swerve module constants as an array of constants
-    private static SwerveModuleConstants<?, ?, ?>[] getSwerveModuleConstants() {
-    SwerveModuleConstants<?, ?, ?>[] modules =
-        new SwerveModuleConstants[] {
-            TunerConstants.FrontLeft,
-            TunerConstants.FrontRight,
-            TunerConstants.BackLeft,
-            TunerConstants.BackRight
-        };
-    
-    // Regulate swerve module constants for simulation if in sim
-    if (Utils.isSimulation()) {
-        return MapleSimSwerveDrivetrain
-            .regulateModuleConstantsForSimulation(modules);
+    private List<StatusSignal<Current>> createDriveSupplyCurrentSignals() {
+        var modules = getModules();
+        List<StatusSignal<Current>> signals = new java.util.ArrayList<>(modules.length);
+        for (int i = 0; i < modules.length; i++) {
+            signals.add(modules[i].getDriveMotor().getSupplyCurrent());
+        }
+        return signals;
     }
 
-    return modules;
-}
+    private List<StatusSignal<Current>> createSteerSupplyCurrentSignals() {
+        var modules = getModules();
+        List<StatusSignal<Current>> signals = new java.util.ArrayList<>(modules.length);
+        for (int i = 0; i < modules.length; i++) {
+            signals.add(modules[i].getSteerMotor().getSupplyCurrent());
+        }
+        return signals;
+    }
 
     private void configureAutoBuilder() {
     try {
@@ -276,8 +294,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Logger.recordOutput("Drive/Pose", getState().Pose);
         }
 
-        BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
-
         Logger.recordOutput("Drive/Pose3d", getPose3d());
         Logger.recordOutput("Drive/X", getState().Pose.getX());
         Logger.recordOutput("Drive/Y", getState().Pose.getY());
@@ -287,19 +303,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
         Logger.recordOutput("Drive/OnBump", isRobotOnBump());
 
-        // 1. Create arrays to hold the current values for all 4 modules
-        double[] driveCurrents = new double[4];
-        double[] steerCurrents = new double[4];
-
-        var modules = getModules(); // Get the array of SwerveModules
-        for (int i = 0; i < 4; i++) {
-            // 2. Extract Stator Current (the current actually doing work in the motor)
-            // You can use getSupplyCurrent() instead if you want to track battery drain.
-            driveCurrents[i] = modules[i].getDriveMotor().getSupplyCurrent().getValueAsDouble();
-            steerCurrents[i] = modules[i].getSteerMotor().getSupplyCurrent().getValueAsDouble();
+        for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
+            driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
+            steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
         }
 
-        // 3. Log the arrays to AdvantageKit
         Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
         Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
         
