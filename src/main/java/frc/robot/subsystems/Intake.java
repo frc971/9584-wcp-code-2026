@@ -29,6 +29,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -85,6 +86,13 @@ public class Intake extends SubsystemBase {
     private static final double kHomingTimeoutSeconds = 1.5;
 
     private boolean isHomed = false;
+
+    private double cachedPivotAngleDeg;
+    private double cachedRollerRPM;
+    private double cachedPivotSupplyCurrent;
+    private double cachedRollerSupplyCurrent;
+    private double cachedPivotTemp;
+    private double cachedRollerTemp;
 
     public Intake() {
         pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
@@ -254,11 +262,26 @@ public class Intake extends SubsystemBase {
     }
 
     @Override
+    public void periodic() {
+        cachedPivotAngleDeg = pivotMotor.getPosition().getValue().in(Degrees);
+        cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
+        cachedPivotSupplyCurrent = pivotMotor.getSupplyCurrent().getValueAsDouble();
+        cachedRollerSupplyCurrent = rollerMotor.getSupplyCurrent().getValueAsDouble();
+        cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
+        cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
+        Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
+        Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
+        Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
+    }
+
+    @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Angle (degrees)", () -> pivotMotor.getPosition().getValue().in(Degrees), null);
-        builder.addDoubleProperty("RPM", () -> rollerMotor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Pivot Supply Current", () -> pivotMotor.getSupplyCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Roller Supply Current", () -> rollerMotor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Angle (degrees)", () -> cachedPivotAngleDeg, null);
+        builder.addDoubleProperty("RPM", () -> cachedRollerRPM, null);
+        builder.addDoubleProperty("Pivot Supply Current", () -> cachedPivotSupplyCurrent, null);
+        builder.addDoubleProperty("Roller Supply Current", () -> cachedRollerSupplyCurrent, null);
     }
 }

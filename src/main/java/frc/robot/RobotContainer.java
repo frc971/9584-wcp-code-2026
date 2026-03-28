@@ -574,6 +574,10 @@ public class RobotContainer {
         swerve.requestIdle();
     }
 
+    public void logSwerveStickyFaults() {
+        swerve.logStickyFaults();
+    }
+
     public void autonomousInit() {
         Logger.recordOutput("Auto/CurrentAuto", autoChooser.getSelected().getName());
     }
