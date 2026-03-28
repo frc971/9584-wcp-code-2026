@@ -74,11 +74,7 @@ public class AimAndDriveCommand extends Command {
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
         final Translation2d hubPosition = Landmarks.hubPosition();
-        final Translation2d hubDelta = hubPosition.minus(robotPosition);
-        if (hubDelta.getNorm() <= kMinAimVectorNormMeters) {
-            return swerve.getState().Pose.getRotation();
-        }
-        return hubDelta.getAngle();
+        return hubPosition.minus(robotPosition).getAngle();
     }
 
     private boolean isPoseValid(Pose2d pose) {
