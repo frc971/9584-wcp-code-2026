@@ -185,7 +185,7 @@ public class RobotContainer {
         // Retract the hanger to hook onto the L1 bar
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Set Hood to 0.3", hood.positionCommand(0.3));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
         NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER)
@@ -366,7 +366,7 @@ public class RobotContainer {
         driver.b().onTrue(
             hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //middle
-        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
+        driver.a().onTrue(hood.positionCommand(0.1).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
         ); //minimum
         driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3900)))
         ); //maximum

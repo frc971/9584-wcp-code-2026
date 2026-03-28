@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(103.88), 
+        INTAKE(105.5), // red = 108, blue = 105.5
         AGITATE(70);
 
         private final double degrees;
