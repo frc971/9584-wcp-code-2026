@@ -39,6 +39,11 @@ public class Shooter extends SubsystemBase {
 
     private double dashboardTargetRPM = 3750.0;
 
+    private double cachedLeftRPM, cachedMiddleRPM, cachedRightRPM;
+    private double cachedLeftStatorCurrent, cachedMiddleStatorCurrent, cachedRightStatorCurrent;
+    private double cachedLeftSupplyCurrent, cachedMiddleSupplyCurrent, cachedRightSupplyCurrent;
+    private double cachedLeftTemp, cachedMiddleTemp, cachedRightTemp;
+
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
         middleMotor = new TalonFX(Ports.kShooterMiddle, Ports.kRoboRioCANBus);
@@ -134,26 +139,39 @@ public class Shooter extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Shooter/LeftSupplyCurrent", leftMotor.getSupplyCurrent().getValueAsDouble());
-        Logger.recordOutput("Shooter/MiddleSupplyCurrent", middleMotor.getSupplyCurrent().getValueAsDouble());
-        Logger.recordOutput("Shooter/RightSupplyCurrent", rightMotor.getSupplyCurrent().getValueAsDouble());
-        Logger.recordOutput("Shooter/LeftTemp", leftMotor.getDeviceTemp().getValueAsDouble());
-        Logger.recordOutput("Shooter/MiddleTemp", middleMotor.getDeviceTemp().getValueAsDouble());
-        Logger.recordOutput("Shooter/RightTemp", rightMotor.getDeviceTemp().getValueAsDouble());
-    }
+        cachedLeftRPM = leftMotor.getVelocity().getValue().in(RPM);
+        cachedMiddleRPM = middleMotor.getVelocity().getValue().in(RPM);
+        cachedRightRPM = rightMotor.getVelocity().getValue().in(RPM);
+        cachedLeftStatorCurrent = leftMotor.getStatorCurrent().getValueAsDouble();
+        cachedMiddleStatorCurrent = middleMotor.getStatorCurrent().getValueAsDouble();
+        cachedRightStatorCurrent = rightMotor.getStatorCurrent().getValueAsDouble();
+        cachedLeftSupplyCurrent = leftMotor.getSupplyCurrent().getValueAsDouble();
+        cachedMiddleSupplyCurrent = middleMotor.getSupplyCurrent().getValueAsDouble();
+        cachedRightSupplyCurrent = rightMotor.getSupplyCurrent().getValueAsDouble();
+        cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
+        cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
+        cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
 
-    private void initSendable(SendableBuilder builder, TalonFX motor, String name) {
-        builder.addDoubleProperty(name + " RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty(name + " Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty(name + " Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        Logger.recordOutput("Shooter/LeftSupplyCurrent", cachedLeftSupplyCurrent);
+        Logger.recordOutput("Shooter/MiddleSupplyCurrent", cachedMiddleSupplyCurrent);
+        Logger.recordOutput("Shooter/RightSupplyCurrent", cachedRightSupplyCurrent);
+        Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
+        Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
+        Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
-        initSendable(builder, leftMotor, "Left");
-        initSendable(builder, middleMotor, "Middle");
-        initSendable(builder, rightMotor, "Right");
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
+        builder.addDoubleProperty("Left RPM", () -> cachedLeftRPM, null);
+        builder.addDoubleProperty("Left Stator Current", () -> cachedLeftStatorCurrent, null);
+        builder.addDoubleProperty("Left Supply Current", () -> cachedLeftSupplyCurrent, null);
+        builder.addDoubleProperty("Middle RPM", () -> cachedMiddleRPM, null);
+        builder.addDoubleProperty("Middle Stator Current", () -> cachedMiddleStatorCurrent, null);
+        builder.addDoubleProperty("Middle Supply Current", () -> cachedMiddleSupplyCurrent, null);
+        builder.addDoubleProperty("Right RPM", () -> cachedRightRPM, null);
+        builder.addDoubleProperty("Right Stator Current", () -> cachedRightStatorCurrent, null);
+        builder.addDoubleProperty("Right Supply Current", () -> cachedRightSupplyCurrent, null);
         builder.addDoubleProperty("Dashboard RPM", () -> dashboardTargetRPM, value -> dashboardTargetRPM = value);
         builder.addDoubleProperty("Target RPM", () -> velocityRequest.getVelocityMeasure().in(RPM), null);
     }

@@ -45,6 +45,8 @@ public class Feeder extends SubsystemBase {
     private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
+    private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
+
     public Feeder() {
         motor = new TalonFX(Ports.kFeeder, Ports.kRoboRioCANBus);
 
@@ -116,15 +118,20 @@ public class Feeder extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Feeder/SupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
-        Logger.recordOutput("Feeder/Temp", motor.getDeviceTemp().getValueAsDouble());
+        cachedRPM = motor.getVelocity().getValue().in(RPM);
+        cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
+        cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Feeder/SupplyCurrent", cachedSupplyCurrent);
+        Logger.recordOutput("Feeder/Temp", cachedTemp);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Feeder Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Feeder Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM", () -> cachedRPM, null);
+        builder.addDoubleProperty("Feeder Stator Current", () -> cachedStatorCurrent, null);
+        builder.addDoubleProperty("Feeder Supply Current", () -> cachedSupplyCurrent, null);
     }
 }

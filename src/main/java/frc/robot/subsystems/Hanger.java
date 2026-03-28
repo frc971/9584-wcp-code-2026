@@ -62,6 +62,7 @@ public class Hanger extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     private boolean isHomed = false;
+    private double cachedExtensionInches, cachedSupplyCurrent, cachedTemp;
 
     public Hanger() {
         motor = new TalonFX(Ports.kHanger, Ports.kRoboRioCANBus);
@@ -162,14 +163,18 @@ public class Hanger extends SubsystemBase {
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Hanger/SupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
-        Logger.recordOutput("Hanger/Temp", motor.getDeviceTemp().getValueAsDouble());
+        cachedExtensionInches = motorAngleToExtension(motor.getPosition().getValue()).in(Inches);
+        cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Hanger/SupplyCurrent", cachedSupplyCurrent);
+        Logger.recordOutput("Hanger/Temp", cachedTemp);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Extension (inches)", () -> motorAngleToExtension(motor.getPosition().getValue()).in(Inches), null);
-        builder.addDoubleProperty("Hanger Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Extension (inches)", () -> cachedExtensionInches, null);
+        builder.addDoubleProperty("Hanger Supply Current", () -> cachedSupplyCurrent, null);
     }
 }

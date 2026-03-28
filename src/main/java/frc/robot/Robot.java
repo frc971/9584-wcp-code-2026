@@ -79,12 +79,6 @@ public class Robot extends LoggedRobot {
     private void logPowerDistribution() {
         Logger.recordOutput("Power/TotalCurrent", pdh.getTotalCurrent());
         Logger.recordOutput("Power/Voltage", pdh.getVoltage());
-        Logger.recordOutput("Power/Temperature", pdh.getTemperature());
-        double[] channelCurrents = new double[24];
-        for (int i = 0; i < 24; i++) {
-            channelCurrents[i] = pdh.getCurrent(i);
-        }
-        Logger.recordOutput("Power/ChannelCurrents", channelCurrents);
 
         var canStatus = RobotController.getCANStatus();
         Logger.recordOutput("CAN/BusUtilization", canStatus.percentBusUtilization);
@@ -100,6 +94,7 @@ public class Robot extends LoggedRobot {
         //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
         //m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.requestSwerveIdle();
+        m_robotContainer.logSwerveStickyFaults();
     }
 
     @Override
