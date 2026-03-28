@@ -39,7 +39,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         STOP(0),
-        INTAKE(1.0);
+        INTAKE(1.0),
+        OUTTAKE(-1.0);
 
         private final double percentOutput;
 
@@ -197,8 +198,22 @@ public class Intake extends SubsystemBase {
         );
     }
 
+    public Command outtakeCommand() {
+        System.out.println("========Outtake Command");
+        return startEnd(
+            () -> {
+                System.out.println("Starting Outtake");
+                set(Speed.OUTTAKE);
+            },
+            () -> {
+                System.out.println("Stopping Outtake");
+                set(Speed.STOP);
+            }
+        );
+    }
+
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
+        return runOnce(() -> set(Speed.STOP))
             .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
             .andThen(
                 Commands.sequence(

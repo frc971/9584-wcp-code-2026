@@ -26,7 +26,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Feeder extends SubsystemBase {
     public enum Speed {
-        FEED(-7500);
+        FEED(-7500),
+        OUTTAKE(7500);
 
         private final double rpm;
 
@@ -95,6 +96,19 @@ public class Feeder extends SubsystemBase {
                 }, 
             () -> {
                 System.out.println("stopping feed");
+                setPercentOutput(0);
+                });
+    }
+
+    public Command outtakeCommand() {
+        System.out.println("===========Outtake Command");
+        return startEnd(
+            () -> {
+                System.out.println("outtaking");
+                set(Speed.OUTTAKE);
+                }, 
+            () -> {
+                System.out.println("stopping outtake");
                 setPercentOutput(0);
                 });
     }

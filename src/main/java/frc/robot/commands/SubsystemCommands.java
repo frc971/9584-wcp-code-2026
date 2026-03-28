@@ -93,6 +93,14 @@ public final class SubsystemCommands {
         return new AimAndDriveCommand(swerve, forwardInput, leftInput);
     }
 
+    // public Command outtake() {
+    //     System.out.println("===Outtake Command");
+    //     return Commands.parallel(
+    //         intake.outtakeCommand(),
+    //         feeder.outtakeCommand()
+    //     );
+    // }
+
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
         return
