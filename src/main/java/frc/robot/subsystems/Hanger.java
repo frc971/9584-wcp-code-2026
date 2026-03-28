@@ -62,7 +62,7 @@ public class Hanger extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     private boolean isHomed = false;
-    private double cachedExtensionInches, cachedSupplyCurrent, cachedTemp;
+    private double cachedExtensionInches, cachedSupplyCurrent;
 
     public Hanger() {
         motor = new TalonFX(Ports.kHanger, Ports.kRoboRioCANBus);
@@ -165,10 +165,8 @@ public class Hanger extends SubsystemBase {
     public void periodic() {
         cachedExtensionInches = motorAngleToExtension(motor.getPosition().getValue()).in(Inches);
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        // cachedTemp = motor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Hanger/SupplyCurrent", cachedSupplyCurrent);
-        // Logger.recordOutput("Hanger/Temp", cachedTemp);
     }
 
     @Override

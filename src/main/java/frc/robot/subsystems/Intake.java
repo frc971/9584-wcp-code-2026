@@ -91,8 +91,6 @@ public class Intake extends SubsystemBase {
     private double cachedRollerRPM;
     private double cachedPivotSupplyCurrent;
     private double cachedRollerSupplyCurrent;
-    private double cachedPivotTemp;
-    private double cachedRollerTemp;
 
     public Intake() {
         pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
@@ -267,14 +265,9 @@ public class Intake extends SubsystemBase {
         cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
         cachedPivotSupplyCurrent = pivotMotor.getSupplyCurrent().getValueAsDouble();
         cachedRollerSupplyCurrent = rollerMotor.getSupplyCurrent().getValueAsDouble();
-        // Temperature reads commented out to reduce CAN overhead
-        // cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
-        // cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
         Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
-        // Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
-        // Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
     }
 
     @Override

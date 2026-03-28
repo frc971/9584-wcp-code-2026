@@ -42,7 +42,6 @@ public class Shooter extends SubsystemBase {
     private double cachedLeftRPM, cachedMiddleRPM, cachedRightRPM;
     private double cachedLeftStatorCurrent, cachedMiddleStatorCurrent, cachedRightStatorCurrent;
     private double cachedLeftSupplyCurrent, cachedMiddleSupplyCurrent, cachedRightSupplyCurrent;
-    private double cachedLeftTemp, cachedMiddleTemp, cachedRightTemp;
 
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
@@ -148,17 +147,9 @@ public class Shooter extends SubsystemBase {
         cachedLeftSupplyCurrent = leftMotor.getSupplyCurrent().getValueAsDouble();
         cachedMiddleSupplyCurrent = middleMotor.getSupplyCurrent().getValueAsDouble();
         cachedRightSupplyCurrent = rightMotor.getSupplyCurrent().getValueAsDouble();
-        // Temperature reads commented out to reduce CAN overhead
-        // cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
-        // cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
-        // cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
-
         Logger.recordOutput("Shooter/LeftSupplyCurrent", cachedLeftSupplyCurrent);
         Logger.recordOutput("Shooter/MiddleSupplyCurrent", cachedMiddleSupplyCurrent);
         Logger.recordOutput("Shooter/RightSupplyCurrent", cachedRightSupplyCurrent);
-        // Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
-        // Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
-        // Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
     }
 
     @Override

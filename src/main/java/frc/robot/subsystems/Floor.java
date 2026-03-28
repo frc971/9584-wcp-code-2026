@@ -40,7 +40,7 @@ public class Floor extends SubsystemBase {
     private final TalonFX motor;
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
-    private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
+    private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent;
 
     public Floor() {
         motor = new TalonFX(Ports.kFloor, Ports.kRoboRioCANBus);
@@ -81,10 +81,8 @@ public class Floor extends SubsystemBase {
         cachedRPM = motor.getVelocity().getValue().in(RPM);
         cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        // cachedTemp = motor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Floor/SupplyCurrent", cachedSupplyCurrent);
-        // Logger.recordOutput("Floor/Temp", cachedTemp);
     }
 
     @Override

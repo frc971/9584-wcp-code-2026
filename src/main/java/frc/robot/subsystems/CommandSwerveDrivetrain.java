@@ -29,7 +29,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -73,12 +72,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final StatusSignal<Angle> rollSignal;
     private final List<StatusSignal<Current>> driveSupplyCurrentSignals;
     private final List<StatusSignal<Current>> steerSupplyCurrentSignals;
-    private final List<StatusSignal<Temperature>> driveTempSignals;
-    private final List<StatusSignal<Temperature>> steerTempSignals;
     private final double[] driveCurrents = new double[4];
     private final double[] steerCurrents = new double[4];
-    private final double[] driveTemps = new double[4];
-    private final double[] steerTemps = new double[4];
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
         SwerveModuleConstants<?, ?, ?>... modules) {
@@ -88,15 +83,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         rollSignal = getPigeon2().getRoll();
         driveSupplyCurrentSignals = createDriveSupplyCurrentSignals();
         steerSupplyCurrentSignals = createSteerSupplyCurrentSignals();
-        driveTempSignals = createDriveTempSignals();
-        steerTempSignals = createSteerTempSignals();
 
         BaseStatusSignal.setUpdateFrequencyForAll(kTelemetryUpdateFrequencyHz, pitchSignal, rollSignal);
         for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
             driveSupplyCurrentSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
             steerSupplyCurrentSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
-            driveTempSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
-            steerTempSignals.get(i).setUpdateFrequency(kTelemetryUpdateFrequencyHz);
         }
         BaseStatusSignal.refreshAll(pitchSignal, rollSignal);
 
@@ -144,24 +135,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         List<StatusSignal<Current>> signals = new java.util.ArrayList<>(modules.length);
         for (int i = 0; i < modules.length; i++) {
             signals.add(modules[i].getSteerMotor().getSupplyCurrent());
-        }
-        return signals;
-    }
-
-    private List<StatusSignal<Temperature>> createDriveTempSignals() {
-        var modules = getModules();
-        List<StatusSignal<Temperature>> signals = new java.util.ArrayList<>(modules.length);
-        for (int i = 0; i < modules.length; i++) {
-            signals.add(modules[i].getDriveMotor().getDeviceTemp());
-        }
-        return signals;
-    }
-
-    private List<StatusSignal<Temperature>> createSteerTempSignals() {
-        var modules = getModules();
-        List<StatusSignal<Temperature>> signals = new java.util.ArrayList<>(modules.length);
-        for (int i = 0; i < modules.length; i++) {
-            signals.add(modules[i].getSteerMotor().getDeviceTemp());
         }
         return signals;
     }
@@ -275,10 +248,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // Logger.recordOutput("Vision/OmegaRadPerSec", omega);
             // Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
             // Logger.recordOutput("Vision/EstimateCount", estimates.size());
+            //
+            // Pose2d[] visionPoses = new Pose2d[estimates.size()];
+            // double[] visionStdDevsXY = new double[estimates.size()];
+            // double[] visionStdDevsTheta = new double[estimates.size()];
+            // double[] visionTagCounts = new double[estimates.size()];
+            // double[] visionAvgTagDists = new double[estimates.size()];
+            // double[] visionLatencies = new double[estimates.size()];
 
             for (int i = 0; i < estimates.size(); i++) {
                 LimelightHelpers.PoseEstimate est = estimates.get(i);
                 Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
+
+                // visionPoses[i] = est.pose;
+                // visionStdDevsXY[i] = stdDevs.get(0, 0);
+                // visionStdDevsTheta[i] = stdDevs.get(2, 0);
+                // visionTagCounts[i] = est.tagCount;
+                // visionAvgTagDists[i] = est.avgTagDist;
+                // visionLatencies[i] = est.latency;
 
                 addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
             }
@@ -290,8 +277,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
             // Logger.recordOutput("Vision/Latencies", visionLatencies);
 
-            // Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
-            // Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            // if (!estimates.isEmpty()) {
+            //     Pose2d bestVisionPose = estimates.get(0).pose;
+            //     Pose2d odomPose = getState().Pose;
+            //     double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
+            //     double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
+            //     Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
+            //     Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            // }
         }
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
@@ -314,15 +307,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
             driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
             steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
-            // Temperature reads commented out to reduce CAN overhead
-            // driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
-            // steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
         }
 
         Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
         Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
-        // Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
-        // Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
