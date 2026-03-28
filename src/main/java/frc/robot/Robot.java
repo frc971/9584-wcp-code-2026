@@ -75,16 +75,16 @@ public class Robot extends LoggedRobot {
     @Override
     public void disabledInit() {
         m_autonomousCommand = null;
-        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
-        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
+        //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
+        //m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.requestSwerveIdle();
     }
 
     @Override
     public void disabledPeriodic() {
         // Reassert neutral modes while disabled in case firmware resets after brownouts
-        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
-        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
+        //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Coast);
+        ///m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Coast);
         m_robotContainer.requestSwerveIdle();
     }
 
@@ -112,8 +112,8 @@ public class Robot extends LoggedRobot {
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
-        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
-        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+        //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
+        //m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
         //m_robotContainer.ensureSwervePoseSeeded();
 
         shiftTimer.restart(); //set timer to 0
@@ -165,8 +165,8 @@ public class Robot extends LoggedRobot {
     @Override
     public void testInit() {
         CommandScheduler.getInstance().cancelAll();
-        m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
-        m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
+        //m_robotContainer.setSwerveDriveNeutralMode(NeutralModeValue.Brake);
+        //m_robotContainer.setSwerveSteerNeutralMode(NeutralModeValue.Brake);
     }
 
     @Override
