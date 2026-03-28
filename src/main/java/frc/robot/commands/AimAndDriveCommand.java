@@ -27,6 +27,7 @@ import org.littletonrobotics.junction.Logger;
 public class AimAndDriveCommand extends Command {
     private static final Angle kAimTolerance = Degrees.of(5);
     private static final double kDebugPrintIntervalSeconds = 0.5;
+    private static final double kMinAimVectorNormMeters = 1e-6;
 
     private final CommandSwerveDrivetrain swerve;
     private final DriveInputSmoother inputSmoother;
@@ -73,7 +74,11 @@ public class AimAndDriveCommand extends Command {
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
         final Translation2d hubPosition = Landmarks.hubPosition();
-        return hubPosition.minus(robotPosition).getAngle();
+        final Translation2d hubDelta = hubPosition.minus(robotPosition);
+        if (hubDelta.getNorm() <= kMinAimVectorNormMeters) {
+            return swerve.getState().Pose.getRotation();
+        }
+        return hubDelta.getAngle();
     }
 
     private boolean isPoseValid(Pose2d pose) {
