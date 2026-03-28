@@ -57,8 +57,8 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(108), 
-        AGITATE(60);
+        INTAKE(103.88), 
+        AGITATE(70);
 
         private final double degrees;
 
@@ -113,9 +113,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(60))
+                    .withStatorCurrentLimit(Amps.of(40))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withFeedback(
