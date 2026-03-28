@@ -360,7 +360,7 @@ public class RobotContainer {
         //driverPovLeft().whileTrue(subsystemCommands.autoAim());
         //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
-        driverLeftStickButton().onTrue(intake.outtakeCommand());
+        driverLeftStickButton().whileTrue(intake.outtakeCommand());
 
         //Hood Bindings - Need to tune
         driver.b().onTrue(
