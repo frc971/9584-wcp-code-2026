@@ -165,10 +165,10 @@ public class Hanger extends SubsystemBase {
     public void periodic() {
         cachedExtensionInches = motorAngleToExtension(motor.getPosition().getValue()).in(Inches);
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        // cachedTemp = motor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Hanger/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Hanger/Temp", cachedTemp);
+        // Logger.recordOutput("Hanger/Temp", cachedTemp);
     }
 
     @Override

@@ -83,9 +83,10 @@ public class Hood extends SubsystemBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Current Position", () -> currentPosition, null);
-        builder.addDoubleProperty("Left Servo Position", () -> leftServo.getPosition(), null);
-        builder.addDoubleProperty("Right Servo Position", () -> rightServo.getPosition(), null);
-        builder.addDoubleProperty("Target Position", () -> targetPosition, value -> setPosition(value));
+        // Servo telemetry commented out to reduce loop overhead
+        // builder.addDoubleProperty("Current Position", () -> currentPosition, null);
+        // builder.addDoubleProperty("Left Servo Position", () -> leftServo.getPosition(), null);
+        // builder.addDoubleProperty("Right Servo Position", () -> rightServo.getPosition(), null);
+        // builder.addDoubleProperty("Target Position", () -> targetPosition, value -> setPosition(value));
     }
 }

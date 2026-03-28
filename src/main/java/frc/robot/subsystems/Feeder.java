@@ -121,10 +121,10 @@ public class Feeder extends SubsystemBase {
         cachedRPM = motor.getVelocity().getValue().in(RPM);
         cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        // cachedTemp = motor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Feeder/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Feeder/Temp", cachedTemp);
+        // Logger.recordOutput("Feeder/Temp", cachedTemp);
     }
 
     @Override

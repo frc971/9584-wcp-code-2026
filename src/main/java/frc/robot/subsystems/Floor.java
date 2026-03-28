@@ -81,10 +81,10 @@ public class Floor extends SubsystemBase {
         cachedRPM = motor.getVelocity().getValue().in(RPM);
         cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        // cachedTemp = motor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Floor/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Floor/Temp", cachedTemp);
+        // Logger.recordOutput("Floor/Temp", cachedTemp);
     }
 
     @Override

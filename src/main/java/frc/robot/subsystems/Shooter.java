@@ -148,16 +148,17 @@ public class Shooter extends SubsystemBase {
         cachedLeftSupplyCurrent = leftMotor.getSupplyCurrent().getValueAsDouble();
         cachedMiddleSupplyCurrent = middleMotor.getSupplyCurrent().getValueAsDouble();
         cachedRightSupplyCurrent = rightMotor.getSupplyCurrent().getValueAsDouble();
-        cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
-        cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
-        cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
+        // Temperature reads commented out to reduce CAN overhead
+        // cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
+        // cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
+        // cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Shooter/LeftSupplyCurrent", cachedLeftSupplyCurrent);
         Logger.recordOutput("Shooter/MiddleSupplyCurrent", cachedMiddleSupplyCurrent);
         Logger.recordOutput("Shooter/RightSupplyCurrent", cachedRightSupplyCurrent);
-        Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
-        Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
-        Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
+        // Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
+        // Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
+        // Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
     }
 
     @Override
@@ -172,7 +173,7 @@ public class Shooter extends SubsystemBase {
         builder.addDoubleProperty("Right RPM", () -> cachedRightRPM, null);
         builder.addDoubleProperty("Right Stator Current", () -> cachedRightStatorCurrent, null);
         builder.addDoubleProperty("Right Supply Current", () -> cachedRightSupplyCurrent, null);
-        builder.addDoubleProperty("Dashboard RPM", () -> dashboardTargetRPM, value -> dashboardTargetRPM = value);
-        builder.addDoubleProperty("Target RPM", () -> velocityRequest.getVelocityMeasure().in(RPM), null);
+        // builder.addDoubleProperty("Dashboard RPM", () -> dashboardTargetRPM, value -> dashboardTargetRPM = value);
+        // builder.addDoubleProperty("Target RPM", () -> velocityRequest.getVelocityMeasure().in(RPM), null);
     }
 }

@@ -267,13 +267,14 @@ public class Intake extends SubsystemBase {
         cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
         cachedPivotSupplyCurrent = pivotMotor.getSupplyCurrent().getValueAsDouble();
         cachedRollerSupplyCurrent = rollerMotor.getSupplyCurrent().getValueAsDouble();
-        cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
-        cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
+        // Temperature reads commented out to reduce CAN overhead
+        // cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
+        // cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
 
         Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
         Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
-        Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
-        Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
+        // Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
+        // Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
     }
 
     @Override
