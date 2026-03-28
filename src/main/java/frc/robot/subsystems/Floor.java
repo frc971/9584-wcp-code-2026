@@ -16,6 +16,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
@@ -71,6 +72,12 @@ public class Floor extends SubsystemBase {
     public Command feedCommand() {
         System.out.println("================Floor Feed Command");
         return startEnd(() -> {System.out.println("Starting floor feed"); set(Speed.FEED);}, () -> {System.out.println("stopping floor feed"); set(Speed.STOP);});
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Floor/SupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Floor/Temp", motor.getDeviceTemp().getValueAsDouble());
     }
 
     @Override

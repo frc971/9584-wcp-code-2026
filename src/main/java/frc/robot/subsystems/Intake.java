@@ -29,6 +29,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -251,6 +252,14 @@ public class Intake extends SubsystemBase {
         .finallyDo(interrupted -> setPivotPercentOutput(0))
         .unless(() -> isHomed)
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Intake/PivotSupplyCurrent", pivotMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Intake/RollerSupplyCurrent", rollerMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Intake/PivotTemp", pivotMotor.getDeviceTemp().getValueAsDouble());
+        Logger.recordOutput("Intake/RollerTemp", rollerMotor.getDeviceTemp().getValueAsDouble());
     }
 
     @Override

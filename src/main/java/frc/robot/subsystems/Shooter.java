@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
@@ -129,6 +130,16 @@ public class Shooter extends SubsystemBase {
             final AngularVelocity targetVelocity = velocityRequest.getVelocityMeasure();
             return isInVelocityMode && currentVelocity.isNear(targetVelocity, kVelocityTolerance);
         });
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Shooter/LeftSupplyCurrent", leftMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Shooter/MiddleSupplyCurrent", middleMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Shooter/RightSupplyCurrent", rightMotor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Shooter/LeftTemp", leftMotor.getDeviceTemp().getValueAsDouble());
+        Logger.recordOutput("Shooter/MiddleTemp", middleMotor.getDeviceTemp().getValueAsDouble());
+        Logger.recordOutput("Shooter/RightTemp", rightMotor.getDeviceTemp().getValueAsDouble());
     }
 
     private void initSendable(SendableBuilder builder, TalonFX motor, String name) {

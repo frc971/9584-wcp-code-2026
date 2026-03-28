@@ -27,6 +27,7 @@ import edu.wpi.first.units.measure.Per;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -157,6 +158,12 @@ public class Hanger extends SubsystemBase {
     private Distance motorAngleToExtension(Angle motorAngle) {
         final Measure<DistanceUnit> extensionMeasure = motorAngle.timesRatio(kHangerExtensionPerMotorAngle);
         return Inches.of(extensionMeasure.in(Inches)); // Promote from Measure<DistanceUnit> to Distance
+    }
+
+    @Override
+    public void periodic() {
+        Logger.recordOutput("Hanger/SupplyCurrent", motor.getSupplyCurrent().getValueAsDouble());
+        Logger.recordOutput("Hanger/Temp", motor.getDeviceTemp().getValueAsDouble());
     }
 
     @Override
