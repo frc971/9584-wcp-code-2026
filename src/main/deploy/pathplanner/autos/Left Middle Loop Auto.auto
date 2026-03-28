@@ -7,6 +7,12 @@
         {
           "type": "path",
           "data": {
+            "pathName": "Left Loop Back"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
             "pathName": "Over bump before loop"
           }
         },
