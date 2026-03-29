@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
@@ -79,6 +80,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final double[] steerCurrents = new double[4];
     private final double[] driveTemps = new double[4];
     private final double[] steerTemps = new double[4];
+    private static final double kLoopOverrunThresholdSeconds = 0.1;
+    private double lastPeriodicTimestamp = -1;
+    private boolean loopOverrunDetected = false;
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
         SwerveModuleConstants<?, ?, ?>... modules) {
@@ -243,8 +247,24 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         seedFieldCentric();
     }
 
+    public boolean wasLoopOverrun() {
+        return loopOverrunDetected;
+    }
+
     @Override
     public void periodic() {
+        double now = Timer.getFPGATimestamp();
+        if (lastPeriodicTimestamp > 0) {
+            double elapsed = now - lastPeriodicTimestamp;
+            loopOverrunDetected = elapsed > kLoopOverrunThresholdSeconds;
+            if (loopOverrunDetected) {
+                setControl(idleRequest);
+                DriverStation.reportWarning(
+                    String.format("Loop overrun (%.1fs) — idling drivetrain for safety", elapsed), false);
+            }
+        }
+        lastPeriodicTimestamp = now;
+
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.

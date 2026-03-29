@@ -137,6 +137,11 @@ public class ManualDriveCommand extends Command {
 
     @Override
     public void execute() {
+        if (swerve.wasLoopOverrun()) {
+            previousInput = new ManualDriveInput();
+            currentState = State.IDLING;
+            return;
+        }
         final ManualDriveInput input = inputSmoother.getSmoothedInput();
         if (robotCentricMode) {
             swerve.setControl(
