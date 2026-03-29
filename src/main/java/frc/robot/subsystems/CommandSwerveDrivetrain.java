@@ -304,15 +304,15 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
             Logger.recordOutput("Vision/Latencies", visionLatencies);
 
-            // Log heading disagreement between vision and odometry for quick diagnosis
-            // if (!estimates.isEmpty()) {
-            //     Pose2d bestVisionPose = estimates.get(0).pose;
-            //     Pose2d odomPose = getState().Pose;
-            //     double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
-            //     double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
-            //     Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
-            //     Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
-            // }
+            //Log heading disagreement between vision and odometry for quick diagnosis
+            if (!estimates.isEmpty()) {
+                Pose2d bestVisionPose = estimates.get(0).pose;
+                Pose2d odomPose = getState().Pose;
+                double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
+                double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
+                Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
+                Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            }
         }
 
         if (mapleSimSwerveDrivetrain != null) {
@@ -324,26 +324,26 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
 
-        //Logger.recordOutput("Drive/Pose3d", getPose3d());
+        Logger.recordOutput("Drive/Pose3d", getPose3d());
         Logger.recordOutput("Drive/X", state.Pose.getX());
         Logger.recordOutput("Drive/Y", state.Pose.getY());
-        //Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
+        Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
         Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
         Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
         Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
-        //Logger.recordOutput("Drive/OnBump", isRobotOnBump());
+        Logger.recordOutput("Drive/OnBump", isRobotOnBump());
 
-        // for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
-        //     driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
-        //     steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
-        //     driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
-        //     steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
-        // }
+        for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
+            driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
+            steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
+            driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
+            steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
+        }
 
-        // Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
-        // Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
-        // Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
-        // Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
+        Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
+        Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
+        Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
+        Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
