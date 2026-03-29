@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
-        STOP(0),
+        DEFAULT(0.3),
         INTAKE(0.9),
         OUTTAKE(-0.9);
 
@@ -58,7 +58,7 @@ public class Intake extends SubsystemBase {
         HOMED(110),
         STOWED(32),
         INTAKE(105.5), // red = 108, blue = 105.5
-        AGITATE(70);
+        AGITATE(60);
 
         private final double degrees;
 
@@ -79,7 +79,7 @@ public class Intake extends SubsystemBase {
     private final VoltageOut pivotVoltageRequest = new VoltageOut(0);
     private final MotionMagicVoltage pivotMotionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
-    private Speed currentSpeed = Speed.STOP;
+    private Speed currentSpeed = Speed.DEFAULT;
 
     private static final double kHomingPercentOutput = 0.1;
     private static final double kHomingCurrentThresholdAmps = 6.0;
@@ -201,7 +201,7 @@ public class Intake extends SubsystemBase {
             },
             () -> {
                 System.out.println("Stopping Intake");
-                set(Speed.STOP);
+                set(Speed.DEFAULT);
             }
         );
     }
@@ -215,13 +215,13 @@ public class Intake extends SubsystemBase {
             },
             () -> {
                 System.out.println("Stopping Outtake");
-                set(Speed.STOP);
+                set(Speed.DEFAULT);
             }
         );
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.STOP))
+        return runOnce(() -> set(Speed.DEFAULT))
             .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
             .andThen(
                 Commands.sequence(
@@ -236,7 +236,7 @@ public class Intake extends SubsystemBase {
             )
             .handleInterrupt(() -> {
                 set(Position.INTAKE);
-                set(Speed.STOP);
+                set(Speed.DEFAULT);
             });
     }
 

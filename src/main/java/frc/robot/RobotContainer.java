@@ -58,6 +58,7 @@ import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.Hanger.Position;
+import frc.robot.subsystems.Intake.Speed;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -143,10 +144,13 @@ public class RobotContainer {
             configureFuelSim();
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
-        // swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        // shooter.setDefaultCommand(
-        //     shooter.run(() -> shooter.setRPM(750))
-        // );
+        swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        shooter.setDefaultCommand(
+             shooter.run(() -> shooter.setRPM(1875))
+        );
+        intake.setDefaultCommand(
+            intake.run(() -> intake.set(Speed.DEFAULT))
+        );
         swerve.setVision(vision);
     }
 
@@ -319,6 +323,10 @@ public class RobotContainer {
         }       
       }
 
+      if (getSelectedAutoName().equals("Shoot Climb Auto")) {
+        startingPose = new Pose2d(3.500, 3.776, Rotation2d.kZero);
+      }
+
       if (DriverStation.getAlliance().isPresent()
           && DriverStation.getAlliance().get() == DriverStation.Alliance.Red && startingPose != null) {
         startingPose = FlippingUtil.flipFieldPose(startingPose);
@@ -342,9 +350,9 @@ public class RobotContainer {
 
         //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop()).onTrue(shooter.spinUpCommand(0.75*shooter.getDashboardRPM()));
 
-        RobotModeTriggers.teleop()
-        //    .onTrue(intake.homingCommand());
-        .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
+        // RobotModeTriggers.teleop()
+        //     .onTrue(intake.homingCommand());
+        // .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));

@@ -7,12 +7,6 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Right Loop Back"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
             "pathName": "Over bump before loop reflected"
           }
         },
