@@ -45,7 +45,7 @@ public class VisionSubsystem extends SubsystemBase {
 
         for (String llName : llNames) {
             // MegaTag2 requires the robot's gyro orientation to compute pose
-            LimelightHelpers.SetRobotOrientation(llName, gyroYawDegrees, 0, 0, 0, 0, 0);
+            LimelightHelpers.SetRobotOrientation_NoFlush(llName, gyroYawDegrees, 0, 0, 0, 0, 0);
 
             if (!LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
                 continue;
