@@ -39,7 +39,7 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
-        DEFAULT(0.3),
+        DEFAULT(0),
         INTAKE(0.9),
         OUTTAKE(-0.9);
 
@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(105.5), // red = 108, blue = 105.5
+        INTAKE(108), // red = 108, blue = 105.5
         AGITATE(60);
 
         private final double degrees;

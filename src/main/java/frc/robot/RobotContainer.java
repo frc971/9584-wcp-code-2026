@@ -146,10 +146,7 @@ public class RobotContainer {
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
         swerve.registerTelemetry(swerveTelemetry::telemeterize);
         shooter.setDefaultCommand(
-             shooter.run(() -> shooter.setRPM(1875))
-        );
-        intake.setDefaultCommand(
-            intake.run(() -> intake.set(Speed.DEFAULT))
+             shooter.run(() -> shooter.setRPM(750))
         );
         swerve.setVision(vision);
     }
@@ -351,7 +348,7 @@ public class RobotContainer {
         //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop()).onTrue(shooter.spinUpCommand(0.75*shooter.getDashboardRPM()));
 
         // RobotModeTriggers.teleop()
-        //     .onTrue(intake.homingCommand());
+        // //    .onTrue(intake.homingCommand());
         // .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
@@ -374,7 +371,7 @@ public class RobotContainer {
         driver.b().onTrue(
             hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //middle
-        driver.a().onTrue(hood.positionCommand(0.1).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
+        driver.a().onTrue(hood.positionCommand(0.1).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
         ); //minimum
         driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3900)))
         ); //maximum
