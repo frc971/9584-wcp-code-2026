@@ -16,6 +16,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
@@ -39,6 +40,8 @@ public class Floor extends SubsystemBase {
     private final TalonFX motor;
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
+    private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
+
     public Floor() {
         motor = new TalonFX(Ports.kFloor, Ports.kRoboRioCANBus);
 
@@ -52,7 +55,7 @@ public class Floor extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(80))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(25))
+                    .withSupplyCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimitEnable(true)
             );
 
@@ -74,10 +77,21 @@ public class Floor extends SubsystemBase {
     }
 
     @Override
+    public void periodic() {
+        cachedRPM = motor.getVelocity().getValue().in(RPM);
+        cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
+        cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Floor/SupplyCurrent", cachedSupplyCurrent);
+        Logger.recordOutput("Floor/Temp", cachedTemp);
+    }
+
+    @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Floor Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Floor Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM", () -> cachedRPM, null);
+        builder.addDoubleProperty("Floor Stator Current", () -> cachedStatorCurrent, null);
+        builder.addDoubleProperty("Floor Supply Current", () -> cachedSupplyCurrent, null);
     }
 }

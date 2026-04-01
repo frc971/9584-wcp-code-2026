@@ -58,6 +58,7 @@ import frc.robot.utils.simulation.FuelSim;
 import frc.util.SwerveTelemetry;
 import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.Hanger.Position;
+import frc.robot.subsystems.Intake.Speed;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
@@ -143,10 +144,10 @@ public class RobotContainer {
             configureFuelSim();
         }
         SmartDashboard.putBoolean("Sim Robot Centric Mode", simRobotCentricMode);
-        // swerve.registerTelemetry(swerveTelemetry::telemeterize);
-        // shooter.setDefaultCommand(
-        //     shooter.run(() -> shooter.setRPM(750))
-        // );
+        swerve.registerTelemetry(swerveTelemetry::telemeterize);
+        shooter.setDefaultCommand(
+             shooter.run(() -> shooter.setRPM(750))
+        );
         swerve.setVision(vision);
     }
 
@@ -185,7 +186,7 @@ public class RobotContainer {
         // Retract the hanger to hook onto the L1 bar
         NamedCommands.registerCommand("Hanger Hook Command", hanger.positionCommand(Hanger.Position.HANGER_HOME));
 
-        NamedCommands.registerCommand("Set Hood to 0.2", hood.positionCommand(0.2));
+        NamedCommands.registerCommand("Set Hood to 0.3", hood.positionCommand(0.3));
         NamedCommands.registerCommand("Set Hood to 0.5", hood.positionCommand(0.5));
         NamedCommands.registerCommand("Shoot Manual For Shoot Auto", subsystemCommands.shootManualForShootAuto());
         NamedCommands.registerCommand("Extend Hopper", hanger.positionCommand(Hanger.Position.EXTEND_HOPPER)
@@ -319,6 +320,10 @@ public class RobotContainer {
         }       
       }
 
+      if (getSelectedAutoName().equals("Shoot Climb Auto")) {
+        startingPose = new Pose2d(3.500, 3.776, Rotation2d.kZero);
+      }
+
       if (DriverStation.getAlliance().isPresent()
           && DriverStation.getAlliance().get() == DriverStation.Alliance.Red && startingPose != null) {
         startingPose = FlippingUtil.flipFieldPose(startingPose);
@@ -342,9 +347,9 @@ public class RobotContainer {
 
         //RobotModeTriggers.autonomous().or(RobotModeTriggers.teleop()).onTrue(shooter.spinUpCommand(0.75*shooter.getDashboardRPM()));
 
-        RobotModeTriggers.teleop()
-        //    .onTrue(intake.homingCommand());
-        .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
+        // RobotModeTriggers.teleop()
+        // //    .onTrue(intake.homingCommand());
+        // .onTrue(hanger.positionCommand(Hanger.Position.EXTEND_HOPPER));
 
         driverLeftTrigger().whileTrue(intake.intakeCommand());
         driverLeftBumper().onTrue(intake.runOnce(() -> intake.set(Intake.Position.STOWED)));
@@ -360,11 +365,13 @@ public class RobotContainer {
         //driverPovLeft().whileTrue(subsystemCommands.autoAim());
         //driverPovRight().whileTrue(subsystemCommands.aimAndShoot());
 
+        driverLeftStickButton().whileTrue(intake.outtakeCommand());
+
         //Hood Bindings - Need to tune
         driver.b().onTrue(
             hood.positionCommand(0.4).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3750)))
         ); //middle
-        driver.a().onTrue(hood.positionCommand(0.01).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3100)))
+        driver.a().onTrue(hood.positionCommand(0.1).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3000)))
         ); //minimum
         driver.y().onTrue(hood.positionCommand(0.7).alongWith(Commands.runOnce(() -> shooter.setDashboardRPM(3900)))
         ); //maximum
@@ -570,6 +577,10 @@ public class RobotContainer {
 
     public void requestSwerveIdle() {
         swerve.requestIdle();
+    }
+
+    public void logSwerveStickyFaults() {
+        swerve.logStickyFaults();
     }
 
     public void autonomousInit() {

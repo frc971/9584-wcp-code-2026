@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Shoot Adjust Path 2"
+            "pathName": "do nothing"
           }
         },
         {
@@ -23,16 +23,10 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 2.0
+                  "waitTime": 5.0
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Set Hood to 0.2"
           }
         },
         {
@@ -48,34 +42,10 @@
               {
                 "type": "wait",
                 "data": {
-                  "waitTime": 5.0
+                  "waitTime": 20.0
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Half Rotation"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Hanger Extend Command"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "AdjustToClimb"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "Hanger Hook Command"
           }
         }
       ]

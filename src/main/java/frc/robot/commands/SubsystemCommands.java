@@ -93,6 +93,14 @@ public final class SubsystemCommands {
         return new AimAndDriveCommand(swerve, forwardInput, leftInput);
     }
 
+    // public Command outtake() {
+    //     System.out.println("===Outtake Command");
+    //     return Commands.parallel(
+    //         intake.outtakeCommand(),
+    //         feeder.outtakeCommand()
+    //     );
+    // }
+
     public Command shootManually() {
         System.out.println("========Shooting Manually=========");
         return
@@ -122,7 +130,7 @@ public final class SubsystemCommands {
             shooter
         );
         Command feedWhenReady = Commands.waitUntil(shooter::isVelocityWithinTolerance)
-            .andThen(feed())
+            .andThen(feedForShootAuto())
             .andThen(Commands.print("Done feeding"));
         return Commands.sequence(
             Commands.print("Shooting manually"),
@@ -149,6 +157,18 @@ public final class SubsystemCommands {
                 feeder.feedCommand(),
                 Commands.waitSeconds(0.125)
                     .andThen(floor.feedCommand().alongWith(intake.agitateCommand()))
+            )
+        );
+    }
+
+    private Command feedForShootAuto() {
+        System.out.println("=========Feed========");
+        return Commands.sequence(
+            Commands.waitSeconds(0.25),
+            Commands.parallel(
+                feeder.feedCommand(),
+                Commands.waitSeconds(0.125)
+                    .andThen(floor.feedCommand())
             )
         );
     }

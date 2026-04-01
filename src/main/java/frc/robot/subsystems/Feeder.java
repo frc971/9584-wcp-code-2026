@@ -19,6 +19,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
@@ -26,7 +27,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Feeder extends SubsystemBase {
     public enum Speed {
-        FEED(-7500);
+        FEED(-7500),
+        OUTTAKE(7500);
 
         private final double rpm;
 
@@ -42,6 +44,8 @@ public class Feeder extends SubsystemBase {
     private final TalonFX motor;
     private final VelocityVoltage velocityRequest = new VelocityVoltage(0).withSlot(0);
     private final VoltageOut voltageRequest = new VoltageOut(0);
+
+    private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
 
     public Feeder() {
         motor = new TalonFX(Ports.kFeeder, Ports.kRoboRioCANBus);
@@ -99,11 +103,35 @@ public class Feeder extends SubsystemBase {
                 });
     }
 
+    public Command outtakeCommand() {
+        System.out.println("===========Outtake Command");
+        return startEnd(
+            () -> {
+                System.out.println("outtaking");
+                set(Speed.OUTTAKE);
+                }, 
+            () -> {
+                System.out.println("stopping outtake");
+                setPercentOutput(0);
+                });
+    }
+
+    @Override
+    public void periodic() {
+        cachedRPM = motor.getVelocity().getValue().in(RPM);
+        cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
+        cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
+        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Feeder/SupplyCurrent", cachedSupplyCurrent);
+        Logger.recordOutput("Feeder/Temp", cachedTemp);
+    }
+
     @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("RPM", () -> motor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Feeder Stator Current", () -> motor.getStatorCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Feeder Supply Current", () -> motor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("RPM", () -> cachedRPM, null);
+        builder.addDoubleProperty("Feeder Stator Current", () -> cachedStatorCurrent, null);
+        builder.addDoubleProperty("Feeder Supply Current", () -> cachedSupplyCurrent, null);
     }
 }

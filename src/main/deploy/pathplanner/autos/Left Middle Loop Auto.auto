@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Over the bump"
+            "pathName": "Over bump before loop"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "Rotate to intake"
+            "pathName": "Prepare to intake"
           }
         },
         {
@@ -23,7 +23,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Loop Intake"
+                  "pathName": "Straight loop intake"
                 }
               },
               {
@@ -39,12 +39,6 @@
           "type": "path",
           "data": {
             "pathName": "Over bump after loop"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "adjust after bump"
           }
         },
         {

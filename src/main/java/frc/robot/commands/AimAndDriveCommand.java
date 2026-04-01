@@ -27,6 +27,7 @@ import org.littletonrobotics.junction.Logger;
 public class AimAndDriveCommand extends Command {
     private static final Angle kAimTolerance = Degrees.of(5);
     private static final double kDebugPrintIntervalSeconds = 0.5;
+    private static final double kMinAimVectorNormMeters = 1e-6;
 
     private final CommandSwerveDrivetrain swerve;
     private final DriveInputSmoother inputSmoother;

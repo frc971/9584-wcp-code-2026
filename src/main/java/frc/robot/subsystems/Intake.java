@@ -29,6 +29,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,8 +39,9 @@ import frc.robot.sim.SimDeviceRegistrar;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
-        STOP(0),
-        INTAKE(0.8);
+        DEFAULT(0),
+        INTAKE(0.9),
+        OUTTAKE(-0.9);
 
         private final double percentOutput;
 
@@ -55,8 +57,8 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(106), 
-        AGITATE(80);
+        INTAKE(108), // red = 108, blue = 105.5
+        AGITATE(60);
 
         private final double degrees;
 
@@ -77,13 +79,20 @@ public class Intake extends SubsystemBase {
     private final VoltageOut pivotVoltageRequest = new VoltageOut(0);
     private final MotionMagicVoltage pivotMotionMagicRequest = new MotionMagicVoltage(0).withSlot(0);
     private final VoltageOut rollerVoltageRequest = new VoltageOut(0);
-    private Speed currentSpeed = Speed.STOP;
+    private Speed currentSpeed = Speed.DEFAULT;
 
     private static final double kHomingPercentOutput = 0.1;
     private static final double kHomingCurrentThresholdAmps = 6.0;
     private static final double kHomingTimeoutSeconds = 1.5;
 
     private boolean isHomed = false;
+
+    private double cachedPivotAngleDeg;
+    private double cachedRollerRPM;
+    private double cachedPivotSupplyCurrent;
+    private double cachedRollerSupplyCurrent;
+    private double cachedPivotTemp;
+    private double cachedRollerTemp;
 
     public Intake() {
         pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
@@ -104,9 +113,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(50))
+                    .withStatorCurrentLimit(Amps.of(40))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(30))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withFeedback(
@@ -140,7 +149,7 @@ public class Intake extends SubsystemBase {
                 new CurrentLimitsConfigs()
                     .withStatorCurrentLimit(Amps.of(50))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(35))
+                    .withSupplyCurrentLimit(Amps.of(40))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -192,13 +201,28 @@ public class Intake extends SubsystemBase {
             },
             () -> {
                 System.out.println("Stopping Intake");
-                set(Speed.STOP);
+                set(Speed.DEFAULT);
+            }
+        );
+    }
+
+    public Command outtakeCommand() {
+        System.out.println("========Outtake Command");
+        return startEnd(
+            () -> {
+                System.out.println("Starting Outtake");
+                set(Speed.OUTTAKE);
+            },
+            () -> {
+                System.out.println("Stopping Outtake");
+                set(Speed.DEFAULT);
             }
         );
     }
 
     public Command agitateCommand() {
-        return runOnce(() -> set(Speed.INTAKE))
+        return runOnce(() -> set(Speed.DEFAULT))
+            .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
@@ -212,7 +236,7 @@ public class Intake extends SubsystemBase {
             )
             .handleInterrupt(() -> {
                 set(Position.INTAKE);
-                set(Speed.STOP);
+                set(Speed.DEFAULT);
             });
     }
 
@@ -238,11 +262,26 @@ public class Intake extends SubsystemBase {
     }
 
     @Override
+    public void periodic() {
+        cachedPivotAngleDeg = pivotMotor.getPosition().getValue().in(Degrees);
+        cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
+        cachedPivotSupplyCurrent = pivotMotor.getSupplyCurrent().getValueAsDouble();
+        cachedRollerSupplyCurrent = rollerMotor.getSupplyCurrent().getValueAsDouble();
+        cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
+        cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
+
+        Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
+        Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
+        Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
+        Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
+    }
+
+    @Override
     public void initSendable(SendableBuilder builder) {
         builder.addStringProperty("Command", () -> getCurrentCommand() != null ? getCurrentCommand().getName() : "null", null);
-        builder.addDoubleProperty("Angle (degrees)", () -> pivotMotor.getPosition().getValue().in(Degrees), null);
-        builder.addDoubleProperty("RPM", () -> rollerMotor.getVelocity().getValue().in(RPM), null);
-        builder.addDoubleProperty("Pivot Supply Current", () -> pivotMotor.getSupplyCurrent().getValue().in(Amps), null);
-        builder.addDoubleProperty("Roller Supply Current", () -> rollerMotor.getSupplyCurrent().getValue().in(Amps), null);
+        builder.addDoubleProperty("Angle (degrees)", () -> cachedPivotAngleDeg, null);
+        builder.addDoubleProperty("RPM", () -> cachedRollerRPM, null);
+        builder.addDoubleProperty("Pivot Supply Current", () -> cachedPivotSupplyCurrent, null);
+        builder.addDoubleProperty("Roller Supply Current", () -> cachedRollerSupplyCurrent, null);
     }
 }
