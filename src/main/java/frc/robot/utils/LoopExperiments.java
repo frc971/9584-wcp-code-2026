@@ -33,7 +33,9 @@ public class LoopExperiments {
     private static final int THROTTLE_INTERVAL = 5;
 
     // === Auto-run state ===
-    private static boolean autoRunEnabled = false;
+    // Hardcoded ON — experiment starts automatically when robot code runs.
+    // Set to false and redeploy when done with experiments.
+    private static boolean autoRunEnabled = true;
     private static boolean autoRunStarted = false;
     private static final double PHASE_DURATION_SECONDS = 30.0;
     private static double phaseStartTime = 0;
@@ -116,8 +118,8 @@ public class LoopExperiments {
     public static void update() {
         loopCounter++;
 
-        // Check if auto-run mode is requested
-        autoRunEnabled = SmartDashboard.getBoolean(PREFIX + "AutoRun", autoRunEnabled);
+        // autoRunEnabled is hardcoded — don't read from SmartDashboard
+        // (dashboard clients can race and overwrite it to false)
 
         if (autoRunEnabled && !autoRunComplete) {
             updateAutoRun();
@@ -191,8 +193,13 @@ public class LoopExperiments {
         }
     }
 
-    /** Publish all toggles to SmartDashboard (call once at init). */
+    /** Publish all toggles to SmartDashboard and apply lightest config at boot. */
     public static void init() {
+        // Apply lightest config immediately so the robot is stable from the start
+        if (autoRunEnabled) {
+            enableAll();
+        }
+
         SmartDashboard.putBoolean(PREFIX + "SkipTempReads", skipTempReads);
         SmartDashboard.putBoolean(PREFIX + "ThrottleLogging", throttleLogging);
         SmartDashboard.putBoolean(PREFIX + "SkipVision", skipVision);
