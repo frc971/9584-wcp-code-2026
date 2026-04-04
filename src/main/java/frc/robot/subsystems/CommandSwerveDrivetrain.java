@@ -333,17 +333,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
         Logger.recordOutput("Drive/OnBump", isRobotOnBump());
 
-        for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
-            driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
-            steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
-            driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
-            steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
-        }
+        // for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
+        //     driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
+        //     steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
+        //     driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
+        //     steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
+        // }
 
-        Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
-        Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
-        Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
-        Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
+        // Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
+        // Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
+        // Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
+        // Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
