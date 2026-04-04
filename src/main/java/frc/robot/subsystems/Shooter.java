@@ -28,6 +28,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 
 public class Shooter extends SubsystemBase {
     private static final AngularVelocity kVelocityTolerance = RPM.of(100);
@@ -43,12 +45,16 @@ public class Shooter extends SubsystemBase {
     private double cachedLeftStatorCurrent, cachedMiddleStatorCurrent, cachedRightStatorCurrent;
     private double cachedLeftSupplyCurrent, cachedMiddleSupplyCurrent, cachedRightSupplyCurrent;
     private double cachedLeftTemp, cachedMiddleTemp, cachedRightTemp;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Shooter");
 
     public Shooter() {
         leftMotor = new TalonFX(Ports.kShooterLeft, Ports.kRoboRioCANBus);
         middleMotor = new TalonFX(Ports.kShooterMiddle, Ports.kRoboRioCANBus);
         rightMotor = new TalonFX(Ports.kShooterRight, Ports.kRoboRioCANBus);
         motors = List.of(leftMotor, middleMotor, rightMotor);
+        leftVelSignal = leftMotor.getVelocity();
+        middleVelSignal = middleMotor.getVelocity();
+        rightVelSignal = rightMotor.getVelocity();
 
         configureMotor(leftMotor, InvertedValue.CounterClockwise_Positive, 60, 30);
         configureMotor(middleMotor, InvertedValue.CounterClockwise_Positive, 60, 30);
@@ -137,27 +143,51 @@ public class Shooter extends SubsystemBase {
         });
     }
 
+    // Cached StatusSignals to avoid repeated lookups (experiment: ReduceAllocations)
+    private final com.ctre.phoenix6.StatusSignal<AngularVelocity> leftVelSignal;
+    private final com.ctre.phoenix6.StatusSignal<AngularVelocity> middleVelSignal;
+    private final com.ctre.phoenix6.StatusSignal<AngularVelocity> rightVelSignal;
+
     @Override
     public void periodic() {
-        cachedLeftRPM = leftMotor.getVelocity().getValue().in(RPM);
-        cachedMiddleRPM = middleMotor.getVelocity().getValue().in(RPM);
-        cachedRightRPM = rightMotor.getVelocity().getValue().in(RPM);
+        loopTimer.startLoop();
+
+        if (LoopExperiments.reduceAllocations) {
+            // Use getValueAsDouble() to avoid Measure object allocation + GC pressure
+            cachedLeftRPM = leftVelSignal.getValueAsDouble() * 60.0; // rot/s -> RPM
+            cachedMiddleRPM = middleVelSignal.getValueAsDouble() * 60.0;
+            cachedRightRPM = rightVelSignal.getValueAsDouble() * 60.0;
+        } else {
+            cachedLeftRPM = leftMotor.getVelocity().getValue().in(RPM);
+            cachedMiddleRPM = middleMotor.getVelocity().getValue().in(RPM);
+            cachedRightRPM = rightMotor.getVelocity().getValue().in(RPM);
+        }
+
         cachedLeftStatorCurrent = leftMotor.getStatorCurrent().getValueAsDouble();
         cachedMiddleStatorCurrent = middleMotor.getStatorCurrent().getValueAsDouble();
         cachedRightStatorCurrent = rightMotor.getStatorCurrent().getValueAsDouble();
         cachedLeftSupplyCurrent = leftMotor.getSupplyCurrent().getValueAsDouble();
         cachedMiddleSupplyCurrent = middleMotor.getSupplyCurrent().getValueAsDouble();
         cachedRightSupplyCurrent = rightMotor.getSupplyCurrent().getValueAsDouble();
-        cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
-        cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
-        cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
 
-        Logger.recordOutput("Shooter/LeftSupplyCurrent", cachedLeftSupplyCurrent);
-        Logger.recordOutput("Shooter/MiddleSupplyCurrent", cachedMiddleSupplyCurrent);
-        Logger.recordOutput("Shooter/RightSupplyCurrent", cachedRightSupplyCurrent);
-        Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
-        Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
-        Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
+        if (!LoopExperiments.skipTempReads) {
+            cachedLeftTemp = leftMotor.getDeviceTemp().getValueAsDouble();
+            cachedMiddleTemp = middleMotor.getDeviceTemp().getValueAsDouble();
+            cachedRightTemp = rightMotor.getDeviceTemp().getValueAsDouble();
+        }
+        loopTimer.mark("SignalReads");
+
+        if (!LoopExperiments.isThrottledCycle()) {
+            Logger.recordOutput("Shooter/LeftSupplyCurrent", cachedLeftSupplyCurrent);
+            Logger.recordOutput("Shooter/MiddleSupplyCurrent", cachedMiddleSupplyCurrent);
+            Logger.recordOutput("Shooter/RightSupplyCurrent", cachedRightSupplyCurrent);
+            if (!LoopExperiments.skipTempReads) {
+                Logger.recordOutput("Shooter/LeftTemp", cachedLeftTemp);
+                Logger.recordOutput("Shooter/MiddleTemp", cachedMiddleTemp);
+                Logger.recordOutput("Shooter/RightTemp", cachedRightTemp);
+            }
+        }
+        loopTimer.endLoop();
     }
 
     @Override

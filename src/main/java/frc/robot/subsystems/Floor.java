@@ -20,6 +20,8 @@ import org.littletonrobotics.junction.Logger;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 
 public class Floor extends SubsystemBase {
     public enum Speed {
@@ -41,6 +43,7 @@ public class Floor extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Floor");
 
     public Floor() {
         motor = new TalonFX(Ports.kFloor, Ports.kRoboRioCANBus);
@@ -78,13 +81,21 @@ public class Floor extends SubsystemBase {
 
     @Override
     public void periodic() {
-        cachedRPM = motor.getVelocity().getValue().in(RPM);
+        loopTimer.startLoop();
+        cachedRPM = motor.getVelocity().getValueAsDouble() * 60.0; // always use getValueAsDouble for Floor
         cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        if (!LoopExperiments.skipTempReads) {
+            cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        }
 
-        Logger.recordOutput("Floor/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Floor/Temp", cachedTemp);
+        if (!LoopExperiments.isThrottledCycle()) {
+            Logger.recordOutput("Floor/SupplyCurrent", cachedSupplyCurrent);
+            if (!LoopExperiments.skipTempReads) {
+                Logger.recordOutput("Floor/Temp", cachedTemp);
+            }
+        }
+        loopTimer.endLoop();
     }
 
     @Override

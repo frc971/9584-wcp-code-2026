@@ -39,6 +39,8 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.generated.TunerConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 import frc.robot.LimelightHelpers;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
@@ -79,6 +81,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final double[] steerCurrents = new double[4];
     private final double[] driveTemps = new double[4];
     private final double[] steerTemps = new double[4];
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Swerve");
 
     public CommandSwerveDrivetrain(SwerveDrivetrainConstants drivetrainConstants,
         SwerveModuleConstants<?, ?, ?>... modules) {
@@ -245,6 +248,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
+        loopTimer.startLoop();
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -265,12 +269,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+        loopTimer.mark("OperatorPerspective");
 
         SwerveDriveState state = getState();
-        if (vision != null) {
+        loopTimer.mark("GetState");
+
+        // === VISION (experiment: SkipVision, ThrottleVision) ===
+        if (vision != null && LoopExperiments.shouldRunVision()) {
             double omega = Math.abs(state.Speeds.omegaRadiansPerSecond);
             double gyroYawDegrees = state.Pose.getRotation().getDegrees();
             List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+            loopTimer.mark("VisionGetEstimates");
 
             Logger.recordOutput("Vision/OmegaRadPerSec", omega);
             Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
@@ -296,6 +305,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
                 addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
             }
+            loopTimer.mark("VisionProcessAndFuse");
 
             Logger.recordOutput("Vision/Poses", visionPoses);
             Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
@@ -313,8 +323,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
                 Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
             }
+            loopTimer.mark("VisionLogging");
+        } else if (vision != null) {
+            loopTimer.mark("VisionGetEstimates");
+            loopTimer.mark("VisionProcessAndFuse");
+            loopTimer.mark("VisionLogging");
         }
 
+        // === DRIVE POSE LOGGING (experiment: SkipDriveLogging) ===
         if (mapleSimSwerveDrivetrain != null) {
             Pose2d simPose = mapleSimSwerveDrivetrain.mapleSimDrive.getSimulatedDriveTrainPose();
             super.resetPose(simPose);
@@ -323,32 +339,42 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Logger.recordOutput("Drive/Pose", state.Pose);
         }
 
+        if (!LoopExperiments.skipDriveLogging) {
+            Logger.recordOutput("Drive/Pose3d", getPose3d());
+            Logger.recordOutput("Drive/X", state.Pose.getX());
+            Logger.recordOutput("Drive/Y", state.Pose.getY());
+            Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
+            Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
+            Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
+            Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
+            Logger.recordOutput("Drive/OnBump", isRobotOnBump());
+        }
+        loopTimer.mark("DriveLogging");
 
-        Logger.recordOutput("Drive/Pose3d", getPose3d());
-        Logger.recordOutput("Drive/X", state.Pose.getX());
-        Logger.recordOutput("Drive/Y", state.Pose.getY());
-        Logger.recordOutput("Drive/Rotation3d", getRobotRotation3d());
-        Logger.recordOutput("Drive/PitchDegrees", getPitchDegrees());
-        Logger.recordOutput("Drive/RollDegrees", getRollDegrees());
-        Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
-        Logger.recordOutput("Drive/OnBump", isRobotOnBump());
-
+        // === MOTOR SIGNAL READS (experiment: SkipTempReads) ===
         for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
             driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
             steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
-            driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
-            steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
+            if (!LoopExperiments.skipTempReads) {
+                driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
+                steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
+            }
         }
+        loopTimer.mark("MotorSignalReads");
 
         Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
         Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
-        Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
-        Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
-        
+        if (!LoopExperiments.skipTempReads) {
+            Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
+            Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
+        }
+
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
         Logger.recordOutput("Drive/MeasuredStates", getState().ModuleStates);
         Logger.recordOutput("Drive/MeasuredSpeeds", getState().Speeds);
+        loopTimer.mark("FinalLogging");
+        loopTimer.endLoop();
     }
 
     public void logStickyFaults() {

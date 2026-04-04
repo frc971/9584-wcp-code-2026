@@ -36,6 +36,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 
 public class Intake extends SubsystemBase {
     public enum Speed {
@@ -93,10 +95,13 @@ public class Intake extends SubsystemBase {
     private double cachedRollerSupplyCurrent;
     private double cachedPivotTemp;
     private double cachedRollerTemp;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Intake");
 
     public Intake() {
         pivotMotor = new TalonFX(Ports.kIntakePivot, Ports.kRoboRioCANBus);
         rollerMotor = new TalonFX(Ports.kIntakeRollers, Ports.kRoboRioCANBus);
+        pivotPosSignal = pivotMotor.getPosition();
+        rollerVelSignal = rollerMotor.getVelocity();
         configurePivotMotor();
         configureRollerMotor();
         SimDeviceRegistrar.registerTalonFX(pivotMotor);
@@ -261,19 +266,40 @@ public class Intake extends SubsystemBase {
         .withInterruptBehavior(InterruptionBehavior.kCancelSelf);
     }
 
+    // Cached StatusSignals (experiment: ReduceAllocations)
+    private final com.ctre.phoenix6.StatusSignal<Angle> pivotPosSignal;
+    private final com.ctre.phoenix6.StatusSignal<edu.wpi.first.units.measure.AngularVelocity> rollerVelSignal;
+
     @Override
     public void periodic() {
-        cachedPivotAngleDeg = pivotMotor.getPosition().getValue().in(Degrees);
-        cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
+        loopTimer.startLoop();
+
+        if (LoopExperiments.reduceAllocations) {
+            cachedPivotAngleDeg = pivotPosSignal.getValueAsDouble() * 360.0; // rotations -> degrees
+            cachedRollerRPM = rollerVelSignal.getValueAsDouble() * 60.0; // rot/s -> RPM
+        } else {
+            cachedPivotAngleDeg = pivotMotor.getPosition().getValue().in(Degrees);
+            cachedRollerRPM = rollerMotor.getVelocity().getValue().in(RPM);
+        }
+
         cachedPivotSupplyCurrent = pivotMotor.getSupplyCurrent().getValueAsDouble();
         cachedRollerSupplyCurrent = rollerMotor.getSupplyCurrent().getValueAsDouble();
-        cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
-        cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
 
-        Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
-        Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
-        Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
-        Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
+        if (!LoopExperiments.skipTempReads) {
+            cachedPivotTemp = pivotMotor.getDeviceTemp().getValueAsDouble();
+            cachedRollerTemp = rollerMotor.getDeviceTemp().getValueAsDouble();
+        }
+        loopTimer.mark("SignalReads");
+
+        if (!LoopExperiments.isThrottledCycle()) {
+            Logger.recordOutput("Intake/PivotSupplyCurrent", cachedPivotSupplyCurrent);
+            Logger.recordOutput("Intake/RollerSupplyCurrent", cachedRollerSupplyCurrent);
+            if (!LoopExperiments.skipTempReads) {
+                Logger.recordOutput("Intake/PivotTemp", cachedPivotTemp);
+                Logger.recordOutput("Intake/RollerTemp", cachedRollerTemp);
+            }
+        }
+        loopTimer.endLoop();
     }
 
     @Override

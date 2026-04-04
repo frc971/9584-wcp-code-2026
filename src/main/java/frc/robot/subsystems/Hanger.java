@@ -34,6 +34,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 
 public class Hanger extends SubsystemBase {
     public enum Position {
@@ -63,6 +65,7 @@ public class Hanger extends SubsystemBase {
 
     private boolean isHomed = false;
     private double cachedExtensionInches, cachedSupplyCurrent, cachedTemp;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Hanger");
 
     public Hanger() {
         motor = new TalonFX(Ports.kHanger, Ports.kRoboRioCANBus);
@@ -163,12 +166,20 @@ public class Hanger extends SubsystemBase {
 
     @Override
     public void periodic() {
+        loopTimer.startLoop();
         cachedExtensionInches = motorAngleToExtension(motor.getPosition().getValue()).in(Inches);
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        if (!LoopExperiments.skipTempReads) {
+            cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        }
 
-        Logger.recordOutput("Hanger/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Hanger/Temp", cachedTemp);
+        if (!LoopExperiments.isThrottledCycle()) {
+            Logger.recordOutput("Hanger/SupplyCurrent", cachedSupplyCurrent);
+            if (!LoopExperiments.skipTempReads) {
+                Logger.recordOutput("Hanger/Temp", cachedTemp);
+            }
+        }
+        loopTimer.endLoop();
     }
 
     @Override

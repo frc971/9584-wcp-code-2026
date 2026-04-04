@@ -24,6 +24,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.KrakenX60;
 import frc.robot.Ports;
 import frc.robot.sim.SimDeviceRegistrar;
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
 
 public class Feeder extends SubsystemBase {
     public enum Speed {
@@ -46,6 +48,7 @@ public class Feeder extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0);
 
     private double cachedRPM, cachedStatorCurrent, cachedSupplyCurrent, cachedTemp;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/Feeder");
 
     public Feeder() {
         motor = new TalonFX(Ports.kFeeder, Ports.kRoboRioCANBus);
@@ -118,13 +121,21 @@ public class Feeder extends SubsystemBase {
 
     @Override
     public void periodic() {
-        cachedRPM = motor.getVelocity().getValue().in(RPM);
+        loopTimer.startLoop();
+        cachedRPM = motor.getVelocity().getValueAsDouble() * 60.0; // always use getValueAsDouble
         cachedStatorCurrent = motor.getStatorCurrent().getValueAsDouble();
         cachedSupplyCurrent = motor.getSupplyCurrent().getValueAsDouble();
-        cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        if (!LoopExperiments.skipTempReads) {
+            cachedTemp = motor.getDeviceTemp().getValueAsDouble();
+        }
 
-        Logger.recordOutput("Feeder/SupplyCurrent", cachedSupplyCurrent);
-        Logger.recordOutput("Feeder/Temp", cachedTemp);
+        if (!LoopExperiments.isThrottledCycle()) {
+            Logger.recordOutput("Feeder/SupplyCurrent", cachedSupplyCurrent);
+            if (!LoopExperiments.skipTempReads) {
+                Logger.recordOutput("Feeder/Temp", cachedTemp);
+            }
+        }
+        loopTimer.endLoop();
     }
 
     @Override

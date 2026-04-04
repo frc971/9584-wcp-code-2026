@@ -30,6 +30,9 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import frc.robot.utils.LoopExperiments;
+import frc.robot.utils.LoopTimer;
+
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
@@ -42,6 +45,7 @@ public class Robot extends LoggedRobot {
 
     private Timer shiftTimer = new Timer(); //for shift tracking
     private boolean ourAllianceActive = false;
+    private final LoopTimer loopTimer = new LoopTimer("Timing/RobotPeriodic");
     
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -54,6 +58,7 @@ public class Robot extends LoggedRobot {
         m_robotContainer = new RobotContainer();
         SmartDashboard.putData(CommandScheduler.getInstance());
         RobotController.setBrownoutVoltage(Volts.of(6.1));
+        LoopExperiments.init();
     }
     
     /**
@@ -65,18 +70,32 @@ public class Robot extends LoggedRobot {
      */
     @Override
     public void robotPeriodic() {
+        loopTimer.startLoop();
+        LoopExperiments.update();
         if (RobotBase.isSimulation()) {
             PhysicsSim.getInstance().run();
         }
+        loopTimer.mark("PhysicsSim");
         // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,
         // and running subsystem periodic() methods.  This must be called from the robot's periodic
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
+        loopTimer.mark("CommandScheduler");
         logPowerDistribution();
+        loopTimer.mark("PowerDistribution");
+        loopTimer.endLoop();
     }
 
     private void logPowerDistribution() {
+        if (LoopExperiments.skipPowerLogging) {
+            return;
+        }
+        // Throttle PDH reads to every 5th cycle — they hit CAN and caused a 158ms spike
+        if (LoopExperiments.isThrottledCycle()) {
+            return;
+        }
+
         Logger.recordOutput("Power/TotalCurrent", pdh.getTotalCurrent());
         Logger.recordOutput("Power/Voltage", pdh.getVoltage());
 
@@ -204,7 +223,18 @@ public class Robot extends LoggedRobot {
         Logger.recordMetadata("Robot", RobotBase.isReal() ? "Real" : "Simulation");
 
         if (RobotBase.isReal()) {
-            Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+            // Try USB first, fall back to roboRIO internal storage
+            if (new java.io.File("/media/sda1/").exists()) {
+                Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+            } else {
+                try {
+                    Files.createDirectories(Path.of("/home/lvuser/logs"));
+                } catch (IOException ex) {
+                    DriverStation.reportError("Failed to create roboRIO logs directory: " + ex.getMessage(), false);
+                }
+                Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs/"));
+                DriverStation.reportWarning("No USB drive found — logging to /home/lvuser/logs/", false);
+            }
         } else {
             try {
                 Files.createDirectories(Path.of("logs"));
