@@ -276,43 +276,43 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
             Logger.recordOutput("Vision/EstimateCount", estimates.size());
 
-            Pose2d[] visionPoses = new Pose2d[estimates.size()];
-            double[] visionStdDevsXY = new double[estimates.size()];
-            double[] visionStdDevsTheta = new double[estimates.size()];
-            double[] visionTagCounts = new double[estimates.size()];
-            double[] visionAvgTagDists = new double[estimates.size()];
-            double[] visionLatencies = new double[estimates.size()];
+            // Pose2d[] visionPoses = new Pose2d[estimates.size()];
+            // double[] visionStdDevsXY = new double[estimates.size()];
+            // double[] visionStdDevsTheta = new double[estimates.size()];
+            // double[] visionTagCounts = new double[estimates.size()];
+            // double[] visionAvgTagDists = new double[estimates.size()];
+            // double[] visionLatencies = new double[estimates.size()];
 
             for (int i = 0; i < estimates.size(); i++) {
                 LimelightHelpers.PoseEstimate est = estimates.get(i);
                 Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
 
-                visionPoses[i] = est.pose;
-                visionStdDevsXY[i] = stdDevs.get(0, 0);
-                visionStdDevsTheta[i] = stdDevs.get(2, 0);
-                visionTagCounts[i] = est.tagCount;
-                visionAvgTagDists[i] = est.avgTagDist;
-                visionLatencies[i] = est.latency;
+                // visionPoses[i] = est.pose;
+                // visionStdDevsXY[i] = stdDevs.get(0, 0);
+                // visionStdDevsTheta[i] = stdDevs.get(2, 0);
+                // visionTagCounts[i] = est.tagCount;
+                // visionAvgTagDists[i] = est.avgTagDist;
+                // visionLatencies[i] = est.latency;
 
                 addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
             }
 
-            Logger.recordOutput("Vision/Poses", visionPoses);
-            Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
-            Logger.recordOutput("Vision/StdDevsTheta", visionStdDevsTheta);
-            Logger.recordOutput("Vision/TagCounts", visionTagCounts);
-            Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
-            Logger.recordOutput("Vision/Latencies", visionLatencies);
+            // Logger.recordOutput("Vision/Poses", visionPoses);
+            // Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
+            // Logger.recordOutput("Vision/StdDevsTheta", visionStdDevsTheta);
+            // Logger.recordOutput("Vision/TagCounts", visionTagCounts);
+            // Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
+            // Logger.recordOutput("Vision/Latencies", visionLatencies);
 
             //Log heading disagreement between vision and odometry for quick diagnosis
-            if (!estimates.isEmpty()) {
-                Pose2d bestVisionPose = estimates.get(0).pose;
-                Pose2d odomPose = getState().Pose;
-                double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
-                double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
-                Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
-                Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
-            }
+            // if (!estimates.isEmpty()) {
+            //     Pose2d bestVisionPose = estimates.get(0).pose;
+            //     Pose2d odomPose = getState().Pose;
+            //     double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
+            //     double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
+            //     Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
+            //     Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            // }
         }
 
         if (mapleSimSwerveDrivetrain != null) {
