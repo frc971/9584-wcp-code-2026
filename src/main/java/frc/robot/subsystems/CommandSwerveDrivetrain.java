@@ -42,6 +42,11 @@ import frc.robot.LimelightHelpers;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.geometry.Translation2d;
+
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
@@ -269,8 +274,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         SwerveDriveState state = getState();
         if (vision != null) {
             double omega = Math.abs(state.Speeds.omegaRadiansPerSecond);
-            //double gyroYawDegrees = state.Pose.getRotation().getDegrees();
-            //List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+            double gyroYawDegrees = state.Pose.getRotation().getDegrees();
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
 
             // Logger.recordOutput("Vision/OmegaRadPerSec", omega);
             // Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
@@ -283,9 +288,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             // double[] visionAvgTagDists = new double[estimates.size()];
             // double[] visionLatencies = new double[estimates.size()];
 
-            // for (int i = 0; i < estimates.size(); i++) {
-            //     LimelightHelpers.PoseEstimate est = estimates.get(i);
-            //     Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
+             for (int i = 0; i < estimates.size(); i++) {
+                 LimelightHelpers.PoseEstimate est = estimates.get(i);
+                 Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
 
             //     // visionPoses[i] = est.pose;
             //     // visionStdDevsXY[i] = stdDevs.get(0, 0);
@@ -294,8 +299,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             //     // visionAvgTagDists[i] = est.avgTagDist;
             //     // visionLatencies[i] = est.latency;
 
-            //     addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
-            // }
+                 addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+             }
 
             // Logger.recordOutput("Vision/Poses", visionPoses);
             // Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
