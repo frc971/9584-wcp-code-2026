@@ -208,7 +208,18 @@ public class Robot extends LoggedRobot {
         Logger.recordMetadata("Robot", RobotBase.isReal() ? "Real" : "Simulation");
 
         if (RobotBase.isReal()) {
-            Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+            // Try USB first, fall back to roboRIO internal storage
+            if (new java.io.File("/media/sda1/").exists()) {
+                Logger.addDataReceiver(new WPILOGWriter("/media/sda1/"));
+            } else {
+                try {
+                    Files.createDirectories(Path.of("/home/lvuser/logs"));
+                } catch (IOException ex) {
+                    DriverStation.reportError("Failed to create roboRIO logs directory: " + ex.getMessage(), false);
+                }
+                Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs/"));
+                DriverStation.reportWarning("No USB drive found — logging to /home/lvuser/logs/", false);
+            }
         } else {
             try {
                 Files.createDirectories(Path.of("logs"));
