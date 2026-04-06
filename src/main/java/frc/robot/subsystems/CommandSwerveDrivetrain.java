@@ -275,7 +275,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (vision != null) {
             double omega = Math.abs(state.Speeds.omegaRadiansPerSecond);
             double gyroYawDegrees = state.Pose.getRotation().getDegrees();
-            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+            // MegaTag2 requires the robot's gyro orientation to compute pose
+            LimelightHelpers.SetRobotOrientation("limelight-shooter", gyroYawDegrees, 0, 0, 0, 0, 0);
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates();
 
             // Logger.recordOutput("Vision/OmegaRadPerSec", omega);
             // Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
