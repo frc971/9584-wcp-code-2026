@@ -30,6 +30,8 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import frc.robot.utils.SystemDiagnostics;
+
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
  * the TimedRobot documentation. If you change the name of this class or the package after creating
@@ -42,6 +44,7 @@ public class Robot extends LoggedRobot {
 
     private Timer shiftTimer = new Timer(); //for shift tracking
     private boolean ourAllianceActive = false;
+    private final SystemDiagnostics diagnostics = new SystemDiagnostics();
     
     /**
      * This function is run when the robot is first started up and should be used for any
@@ -74,6 +77,7 @@ public class Robot extends LoggedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         logPowerDistribution();
+        diagnostics.log();
     }
 
     private void logPowerDistribution() {
