@@ -300,8 +300,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             //     // visionTagCounts[i] = est.tagCount;
             //     // visionAvgTagDists[i] = est.avgTagDist;
             //     // visionLatencies[i] = est.latency;
-
-                 addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+                
+            //TEST NEW VISION WITH THIS IF STATEMENT TMRW
+                 //if (omega < 3.0 || est.tagCount > 1) {
+                    //if (!vision.hasHighSingleTagAmbiguity(est)) {
+                        addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+                    //}
+                //}
              }
 
             // Logger.recordOutput("Vision/Poses", visionPoses);
