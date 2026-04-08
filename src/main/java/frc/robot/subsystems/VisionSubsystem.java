@@ -47,7 +47,7 @@ public class VisionSubsystem extends SubsystemBase {
         for (String llName : llNames) {
             // MegaTag2 requires orientation. Assuming 0 here, 
             // but Drivetrain should ideally call a "refresh" method with gyro data.
-            LimelightHelpers.SetRobotOrientation(llName, 0, 0, 0, 0, 0, 0);
+            //LimelightHelpers.SetRobotOrientation(llName, 0, 0, 0, 0, 0, 0);
             
             // 3. This is the expensive part—we only do it ONCE per camera
             LimelightHelpers.PoseEstimate est = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
