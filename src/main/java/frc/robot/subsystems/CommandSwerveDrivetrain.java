@@ -279,42 +279,42 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             LimelightHelpers.SetRobotOrientation("limelight-shooter", gyroYawDegrees, 0, 0, 0, 0, 0);
             List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates();
 
-            // Logger.recordOutput("Vision/OmegaRadPerSec", omega);
-            // Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
-            // Logger.recordOutput("Vision/EstimateCount", estimates.size());
+            Logger.recordOutput("Vision/OmegaRadPerSec", omega);
+            Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
+            Logger.recordOutput("Vision/EstimateCount", estimates.size());
 
-            // Pose2d[] visionPoses = new Pose2d[estimates.size()];
-            // double[] visionStdDevsXY = new double[estimates.size()];
-            // double[] visionStdDevsTheta = new double[estimates.size()];
-            // double[] visionTagCounts = new double[estimates.size()];
-            // double[] visionAvgTagDists = new double[estimates.size()];
-            // double[] visionLatencies = new double[estimates.size()];
+            Pose2d[] visionPoses = new Pose2d[estimates.size()];
+            double[] visionStdDevsXY = new double[estimates.size()];
+            double[] visionStdDevsTheta = new double[estimates.size()];
+            double[] visionTagCounts = new double[estimates.size()];
+            double[] visionAvgTagDists = new double[estimates.size()];
+            double[] visionLatencies = new double[estimates.size()];
 
              for (int i = 0; i < estimates.size(); i++) {
                  LimelightHelpers.PoseEstimate est = estimates.get(i);
                  Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
 
-            //     // visionPoses[i] = est.pose;
-            //     // visionStdDevsXY[i] = stdDevs.get(0, 0);
-            //     // visionStdDevsTheta[i] = stdDevs.get(2, 0);
-            //     // visionTagCounts[i] = est.tagCount;
-            //     // visionAvgTagDists[i] = est.avgTagDist;
-            //     // visionLatencies[i] = est.latency;
+                visionPoses[i] = est.pose;
+                visionStdDevsXY[i] = stdDevs.get(0, 0);
+                visionStdDevsTheta[i] = stdDevs.get(2, 0);
+                visionTagCounts[i] = est.tagCount;
+                visionAvgTagDists[i] = est.avgTagDist;
+                visionLatencies[i] = est.latency;
                 
-            //TEST NEW VISION WITH THIS IF STATEMENT TMRW
-                 //if (omega < 3.0 || est.tagCount > 1) {
-                    //if (!vision.hasHighSingleTagAmbiguity(est)) {
-                        addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+            // //TEST NEW VISION WITH THIS IF STATEMENT TMRW
+                  //if (omega < 3.0 || est.tagCount > 1) {
+                     //if (!vision.hasHighSingleTagAmbiguity(est)) {
+                         addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
                     //}
                 //}
              }
 
-            // Logger.recordOutput("Vision/Poses", visionPoses);
-            // Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
-            // Logger.recordOutput("Vision/StdDevsTheta", visionStdDevsTheta);
-            // Logger.recordOutput("Vision/TagCounts", visionTagCounts);
-            // Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
-            // Logger.recordOutput("Vision/Latencies", visionLatencies);
+            Logger.recordOutput("Vision/Poses", visionPoses);
+            Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
+            Logger.recordOutput("Vision/StdDevsTheta", visionStdDevsTheta);
+            Logger.recordOutput("Vision/TagCounts", visionTagCounts);
+            Logger.recordOutput("Vision/AvgTagDists", visionAvgTagDists);
+            Logger.recordOutput("Vision/Latencies", visionLatencies);
 
             //Log heading disagreement between vision and odometry for quick diagnosis
             // if (!estimates.isEmpty()) {

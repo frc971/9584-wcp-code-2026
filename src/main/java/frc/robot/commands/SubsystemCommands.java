@@ -76,15 +76,15 @@ public final class SubsystemCommands {
 
     public Command aimAndShoot() {
         System.out.println("=========Aim and Shoot Command=========");
-        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput);
+        final AimAndDriveCommand aimAndDriveCommand = new AimAndDriveCommand(swerve, forwardInput, leftInput); 
         final PrepareShotCommand prepareShotCommand = new PrepareShotCommand(shooter, hood, () -> swerve.getState().Pose);
         return Commands.parallel(
-            Commands.print("Aiming and shooting"),
-            aimAndDriveCommand,
-            Commands.waitSeconds(0.25)
-                .andThen(prepareShotCommand),
-            Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot())
-                .andThen(feed())
+             Commands.print("Aiming and shooting"),
+             aimAndDriveCommand,
+             Commands.waitSeconds(0.25)
+                 .andThen(prepareShotCommand),
+             Commands.waitUntil(() -> aimAndDriveCommand.isAimed() && prepareShotCommand.isReadyToShoot())
+               .andThen(feed())
         );
     }
 

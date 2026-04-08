@@ -11,6 +11,8 @@ import edu.wpi.first.math.interpolation.InterpolatingTreeMap;
 import edu.wpi.first.math.interpolation.Interpolator;
 import edu.wpi.first.math.interpolation.InverseInterpolator;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Landmarks;
@@ -64,9 +66,12 @@ public class PrepareShotCommand extends Command {
         return shooter.isVelocityWithinTolerance() && hood.isPositionWithinTolerance();
     }
 
+    private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
+    private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+
     private Distance getDistanceToHub() {
         final Translation2d robotPosition = robotPoseSupplier.get().getTranslation();
-        final Translation2d hubPosition = Landmarks.hubPosition();
+        final Translation2d hubPosition = DriverStation.getAlliance().get().equals(Alliance.Blue) ? kDefaultBlueHubPosition : kDefaultRedHubPosition;
         return Meters.of(robotPosition.getDistance(hubPosition));
     }
 

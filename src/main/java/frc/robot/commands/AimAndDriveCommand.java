@@ -1,6 +1,7 @@
 package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
 
 import java.util.function.DoubleSupplier;
 
@@ -9,6 +10,8 @@ import com.ctre.phoenix6.swerve.SwerveModule.SteerRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -21,6 +24,7 @@ import frc.util.DriveInputSmoother;
 import frc.util.GeometryUtil;
 import frc.util.ManualDriveInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import org.littletonrobotics.junction.Logger;
 
@@ -34,6 +38,15 @@ public class AimAndDriveCommand extends Command {
     private static final double kPoseEdgeMarginMeters = 0.1;
     private boolean poseWarningIssued = false;
     private double lastDebugPrintTimestamp = 0.0;
+
+    private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
+    private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+
+    public static final AprilTagFieldLayout layout =
+        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+
+    public static final double fieldLength = layout.getFieldLength();
+    public static final double fieldWidth = layout.getFieldWidth();
 
     private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleRequest = new SwerveRequest.FieldCentricFacingAngle()
         .withRotationalDeadband(Driving.kPIDRotationDeadband)
@@ -73,7 +86,7 @@ public class AimAndDriveCommand extends Command {
 
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
-        final Translation2d hubPosition = Landmarks.hubPosition();
+        final Translation2d hubPosition = DriverStation.getAlliance().get().equals(Alliance.Blue) ? kDefaultBlueHubPosition : kDefaultRedHubPosition;;
         return hubPosition.minus(robotPosition).getAngle();
     }
 
@@ -88,9 +101,9 @@ public class AimAndDriveCommand extends Command {
             return false;
         }
         return x >= -kPoseEdgeMarginMeters
-            && x <= Landmarks.fieldLength + kPoseEdgeMarginMeters
+            && x <= fieldLength + kPoseEdgeMarginMeters
             && y >= -kPoseEdgeMarginMeters
-            && y <= Landmarks.fieldWidth + kPoseEdgeMarginMeters;
+            && y <= fieldWidth + kPoseEdgeMarginMeters;
     }
 
     private boolean currentPoseIsValid() {
@@ -99,18 +112,18 @@ public class AimAndDriveCommand extends Command {
 
     @Override
     public void initialize() {
-        poseWarningIssued = false;
-        ensurePoseValidWithWarning();
+         poseWarningIssued = false;
+         ensurePoseValidWithWarning();
     }
 
     @Override
     public void execute() {
         if (!ensurePoseValidWithWarning()) {
-            swerve.requestIdle();
-            return;
-        }
+             swerve.requestIdle();
+             return;
+         }
 
-        // DEBUG: Print aim diagnostics
+        //DEBUG: Print aim diagnostics
         final double now = Timer.getFPGATimestamp();
         if (now - lastDebugPrintTimestamp >= kDebugPrintIntervalSeconds) {
             lastDebugPrintTimestamp = now;
@@ -150,6 +163,7 @@ public class AimAndDriveCommand extends Command {
                  .withVelocityY(Driving.kMaxSpeed.times(input.left))
                  .withTargetDirection(targetHeading)
         );
+        
     }
 
     @Override

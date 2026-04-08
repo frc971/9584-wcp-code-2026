@@ -36,8 +36,9 @@ public class Landmarks {
     }
 
     public static Translation2d hubPosition() {
-        final Alliance alliance = getAlliance();
-        return alliance == Alliance.Blue ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition) : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
+        //final Alliance alliance = getAlliance();
+        //return alliance == Alliance.Blue ? computeHubPosition(kBlueHubTagIds, kDefaultBlueHubPosition) : computeHubPosition(kRedHubTagIds, kDefaultRedHubPosition);
+        return kDefaultBlueHubPosition;
     }
 
     public static final AprilTagFieldLayout layout =
