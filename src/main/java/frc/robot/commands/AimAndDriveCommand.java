@@ -73,7 +73,7 @@ public class AimAndDriveCommand extends Command {
 
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
-        final Translation2d hubPosition = Landmarks.hubPosition();
+        final Translation2d hubPosition = Landmarks.hubPosition(robotPosition);
         return hubPosition.minus(robotPosition).getAngle();
     }
 
@@ -115,7 +115,8 @@ public class AimAndDriveCommand extends Command {
         if (now - lastDebugPrintTimestamp >= kDebugPrintIntervalSeconds) {
             lastDebugPrintTimestamp = now;
             final Pose2d pose = swerve.getState().Pose;
-            final Translation2d hubPosition = Landmarks.hubPosition();
+            final Translation2d robotPosition = pose.getTranslation();
+            final Translation2d hubPosition = Landmarks.hubPosition(robotPosition);
             final Rotation2d currentHeading = pose.getRotation();
             final Rotation2d targetFieldHeading = getTargetHeadingInFieldFrame();
             final Rotation2d targetOpHeading = getTargetHeadingInOperatorPerspective();
