@@ -16,6 +16,9 @@ public class VisionSubsystem extends SubsystemBase {
     private final String primaryLL = "limelight";
     private static final double kSingleTagAmbiguityThreshold = 0.2;
 
+    // 1. Make the list an instance variable (re-use it to save memory)
+    private final List<LimelightHelpers.PoseEstimate> cachedEstimates = new ArrayList<>();
+
     public VisionSubsystem() {}
 
     // Get the horizontal offset to the target
@@ -38,33 +41,26 @@ public class VisionSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         // This runs 50 times a second on the robot
-    }
-
-    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates(double maxOmega, double gyroYawDegrees) {
-        List<LimelightHelpers.PoseEstimate> estimates = new ArrayList<>();
+        // 2. Clear the list at the start of every loop (50Hz)
+        cachedEstimates.clear();
 
         for (String llName : llNames) {
-            // MegaTag2 requires the robot's gyro orientation to compute pose
-            LimelightHelpers.SetRobotOrientation(llName, gyroYawDegrees, 0, 0, 0, 0, 0);
-
-            if (!LimelightHelpers.getTV(llName)) { //getTV --> can limelight see a target, if yes go, if not skip
-                continue;
-            }
-
-            LimelightHelpers.PoseEstimate estimate =
-                LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            // MegaTag2 requires orientation. Assuming 0 here, 
+            // but Drivetrain should ideally call a "refresh" method with gyro data.
+            //LimelightHelpers.SetRobotOrientation(llName, 0, 0, 0, 0, 0, 0);
             
-            //add estimates with at least 2 tags when spinning fast
-            if (estimate != null && estimate.tagCount > 0) {
-                if (maxOmega < 3.0 || estimate.tagCount > 1) {
-                    if (isPoseInsideField(estimate.pose) && !hasHighSingleTagAmbiguity(estimate)) {
-                        estimates.add(estimate);
-                    }
-                }
+            // 3. This is the expensive part—we only do it ONCE per camera
+            LimelightHelpers.PoseEstimate est = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(llName);
+            
+            if (est != null && est.tagCount > 0) {
+                cachedEstimates.add(est);
             }
         }
-        
-        return estimates;
+    }
+
+    // 4. Return the already-filled list
+    public List<LimelightHelpers.PoseEstimate> getAllPoseEstimates() {
+        return cachedEstimates;
     }
 
     //kalman filter to see how trustworthy the vision code is
@@ -169,7 +165,7 @@ public class VisionSubsystem extends SubsystemBase {
             && y <= Landmarks.fieldWidth + margin;
     }
 
-    private boolean hasHighSingleTagAmbiguity(LimelightHelpers.PoseEstimate estimate) {
+    public boolean hasHighSingleTagAmbiguity(LimelightHelpers.PoseEstimate estimate) {
         if (estimate == null || estimate.tagCount != 1 || estimate.rawFiducials == null
             || estimate.rawFiducials.length == 0) {
             return false;

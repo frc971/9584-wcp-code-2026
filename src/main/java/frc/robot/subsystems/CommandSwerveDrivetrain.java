@@ -42,6 +42,11 @@ import frc.robot.LimelightHelpers;
 import frc.robot.utils.simulation.MapleSimSwerveDrivetrain;
 import frc.robot.utils.simulation.SimSwerveConstants;
 
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.geometry.Translation2d;
+
 public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Subsystem {
     private static final double kSimLoopPeriod = 0.004; // 4 ms
     private static final double kBumpTiltThresholdDegrees = 5.0;
@@ -270,7 +275,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (vision != null) {
             double omega = Math.abs(state.Speeds.omegaRadiansPerSecond);
             double gyroYawDegrees = state.Pose.getRotation().getDegrees();
-            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates(omega, gyroYawDegrees);
+            // MegaTag2 requires the robot's gyro orientation to compute pose
+            LimelightHelpers.SetRobotOrientation("limelight-shooter", gyroYawDegrees, 0, 0, 0, 0, 0);
+            List<LimelightHelpers.PoseEstimate> estimates = vision.getAllPoseEstimates();
 
             Logger.recordOutput("Vision/OmegaRadPerSec", omega);
             Logger.recordOutput("Vision/GyroYawDegrees", gyroYawDegrees);
@@ -283,9 +290,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             double[] visionAvgTagDists = new double[estimates.size()];
             double[] visionLatencies = new double[estimates.size()];
 
-            for (int i = 0; i < estimates.size(); i++) {
-                LimelightHelpers.PoseEstimate est = estimates.get(i);
-                Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
+             for (int i = 0; i < estimates.size(); i++) {
+                 LimelightHelpers.PoseEstimate est = estimates.get(i);
+                 Matrix<N3, N1> stdDevs = vision.getVisionStdDevsForEstimate(est);
 
                 visionPoses[i] = est.pose;
                 visionStdDevsXY[i] = stdDevs.get(0, 0);
@@ -293,9 +300,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 visionTagCounts[i] = est.tagCount;
                 visionAvgTagDists[i] = est.avgTagDist;
                 visionLatencies[i] = est.latency;
-
-                addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
-            }
+                
+                  //if (omega < 3.0 || est.tagCount > 1) {
+                     //if (!vision.hasHighSingleTagAmbiguity(est)) {
+                         addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
+                    //}
+                //}
+             }
 
             Logger.recordOutput("Vision/Poses", visionPoses);
             Logger.recordOutput("Vision/StdDevsXY", visionStdDevsXY);
@@ -305,14 +316,14 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             Logger.recordOutput("Vision/Latencies", visionLatencies);
 
             //Log heading disagreement between vision and odometry for quick diagnosis
-            if (!estimates.isEmpty()) {
-                Pose2d bestVisionPose = estimates.get(0).pose;
-                Pose2d odomPose = getState().Pose;
-                double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
-                double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
-                Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
-                Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
-            }
+            // if (!estimates.isEmpty()) {
+            //     Pose2d bestVisionPose = estimates.get(0).pose;
+            //     Pose2d odomPose = getState().Pose;
+            //     double headingErrorDeg = bestVisionPose.getRotation().minus(odomPose.getRotation()).getDegrees();
+            //     double translationErrorM = bestVisionPose.getTranslation().getDistance(odomPose.getTranslation());
+            //     Logger.recordOutput("Vision/HeadingErrorDeg", headingErrorDeg);
+            //     Logger.recordOutput("Vision/TranslationErrorM", translationErrorM);
+            // }
         }
 
         if (mapleSimSwerveDrivetrain != null) {
@@ -333,17 +344,17 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         Logger.recordOutput("Drive/TiltMagnitudeDegrees", getTiltMagnitudeDegrees());
         Logger.recordOutput("Drive/OnBump", isRobotOnBump());
 
-        for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
-            driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
-            steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
-            driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
-            steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
-        }
+        // for (int i = 0; i < driveSupplyCurrentSignals.size(); i++) {
+        //     driveCurrents[i] = driveSupplyCurrentSignals.get(i).getValueAsDouble();
+        //     steerCurrents[i] = steerSupplyCurrentSignals.get(i).getValueAsDouble();
+        //     driveTemps[i] = driveTempSignals.get(i).getValueAsDouble();
+        //     steerTemps[i] = steerTempSignals.get(i).getValueAsDouble();
+        // }
 
-        Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
-        Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
-        Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
-        Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
+        // Logger.recordOutput("Drive/DriveSupplyCurrents", driveCurrents);
+        // Logger.recordOutput("Drive/SteerSupplyCurrents", steerCurrents);
+        // Logger.recordOutput("Drive/DriveTemperatures", driveTemps);
+        // Logger.recordOutput("Drive/SteerTemperatures", steerTemps);
         
         Logger.recordOutput("BatteryVoltage", RobotController.getBatteryVoltage());
         Logger.recordOutput("Drive/TargetStates", getState().ModuleTargets);
