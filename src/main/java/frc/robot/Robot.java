@@ -54,6 +54,10 @@ public class Robot extends LoggedRobot {
         m_robotContainer = new RobotContainer();
         SmartDashboard.putData(CommandScheduler.getInstance());
         RobotController.setBrownoutVoltage(Volts.of(6.1));
+
+        // IMPORTANT: DO NOT DELETE OR EXPENSIVE FILE READING WILL FREEZE WHEN FIRST TAG HELPER FUNCTION
+        // IS CALLED
+        Landmarks.init();
     }
     
     /**
