@@ -447,9 +447,9 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kHangerUp)
             .or(driverPovLeft())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
-        simButton(Constants.SimControllerButtons.kHangerDown)
-            .or(driverPovRight())
-            .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        // simButton(Constants.SimControllerButtons.kHangerDown)
+        //     .or(driverPovRight())
+        //     .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
         simButton(Constants.SimControllerButtons.kHoodForward)
             .or(driver.y())
             .onTrue(hood.positionCommand(0.75));
