@@ -561,6 +561,7 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
+        driver.povRight().onTrue(Commands.runOnce(() -> manualDriveCommand.toggleBrake()));
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
