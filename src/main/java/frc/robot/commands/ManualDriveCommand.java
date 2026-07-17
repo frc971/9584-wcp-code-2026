@@ -32,8 +32,7 @@ public class ManualDriveCommand extends Command {
     private enum State {
         IDLING,
         DRIVING_WITH_MANUAL_ROTATION,
-        DRIVING_WITH_LOCKED_HEADING,
-        BRAKE
+        DRIVING_WITH_LOCKED_HEADING
     }
 
     private static final Time kHeadingLockDelay = Seconds.of(0.25); // time to wait before locking heading
@@ -58,9 +57,6 @@ public class ManualDriveCommand extends Command {
     private final SwerveRequest.RobotCentric robotCentricRequest = new SwerveRequest.RobotCentric()
         .withDriveRequestType(DriveRequestType.OpenLoopVoltage)
         .withSteerRequestType(SteerRequestType.MotionMagicExpo);
-    
-    private final SwerveRequest.SwerveDriveBrake brakeRequest = new SwerveRequest.SwerveDriveBrake();
-    private boolean braking = false;
 
     private State currentState = State.IDLING;
     private Optional<Rotation2d> lockedHeading = Optional.empty();
@@ -153,20 +149,16 @@ public class ManualDriveCommand extends Command {
             return;
         }
 
-        if (braking) {
-            currentState = State.BRAKE;
+        currentState = State.IDLING;
+        if (input.hasRotation()) {
+        currentState = State.DRIVING_WITH_MANUAL_ROTATION;
+        } else if (input.hasTranslation()) {
+            currentState = lockedHeading.isPresent() ? State.DRIVING_WITH_LOCKED_HEADING : State.DRIVING_WITH_MANUAL_ROTATION;
+        } else if (previousInput.hasRotation() || previousInput.hasTranslation()) {
+            currentState = State.IDLING;
         }
-        else {
-            if (input.hasRotation()) {
-            currentState = State.DRIVING_WITH_MANUAL_ROTATION;
-            } else if (input.hasTranslation()) {
-                currentState = lockedHeading.isPresent() ? State.DRIVING_WITH_LOCKED_HEADING : State.DRIVING_WITH_MANUAL_ROTATION;
-            } else if (previousInput.hasRotation() || previousInput.hasTranslation()) {
-                currentState = State.IDLING;
-            }
-        }
+        
         previousInput = input;
-
         switch (currentState) {
             case IDLING:
                 swerve.setControl(idleRequest);
@@ -188,14 +180,8 @@ public class ManualDriveCommand extends Command {
                         .withTargetDirection(lockedHeading.get())
                 );
                 break;
-            case BRAKE:
-                swerve.setControl(brakeRequest);
         }
     }
-
-    public void toggleBrake() {
-        braking = !braking;
-    } 
 
     @Override
     public boolean isFinished() {

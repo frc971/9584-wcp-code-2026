@@ -384,41 +384,43 @@ public class RobotContainer {
     }
 
     private void configureSimBindings() {
-        swerve.setDefaultCommand(
-            swerve.applyRequest(() -> {
-                if (!isSimControllerConnected() && !isDriverControllerConnected()) {
-                    return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
-                }
+        // swerve.setDefaultCommand(
+        //     swerve.applyRequest(() -> {
+        //         if (!isSimControllerConnected() && !isDriverControllerConnected()) {
+        //             return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
+        //         }
 
-                double exponentVelocity =
-                    Constants.SimConstants.controllerVelocityCurveExponent;
-                double exponentRotation =
-                    Constants.SimConstants.controllerRotationCurveExponent;
+        //         double exponentVelocity =
+        //             Constants.SimConstants.controllerVelocityCurveExponent;
+        //         double exponentRotation =
+        //             Constants.SimConstants.controllerRotationCurveExponent;
 
-                if (!simRobotCentricMode) {
-                    double fieldX = fieldXSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
-                    double fieldY = fieldYSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
-                    double fieldRotate = fieldRotateSlewFilter.calculate(
-                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
-                    return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
-                } else {
-                    double robotX = robotXSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
-                    double robotY = robotYSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
-                    double robotRotate = robotRotateSlewFilter.calculate(
-                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
-                    return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
-                }
-            }));
+        //         if (!simRobotCentricMode) {
+        //             double fieldX = fieldXSlewFilter.calculate(
+        //                 Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+        //                     * ExponentialConvert(getSimLeftInput(), exponentVelocity));
+        //             double fieldY = fieldYSlewFilter.calculate(
+        //                 Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+        //                     * ExponentialConvert(getSimForwardInput(), exponentVelocity));
+        //             double fieldRotate = fieldRotateSlewFilter.calculate(
+        //                 Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
+        //                     * ExponentialConvert(getSimRotationInput(), exponentRotation));
+        //             return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
+        //         } else {
+        //             double robotX = robotXSlewFilter.calculate(
+        //                 Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+        //                     * ExponentialConvert(getSimLeftInput(), exponentVelocity));
+        //             double robotY = robotYSlewFilter.calculate(
+        //                 Constants.Driving.kMaxSpeed.in(MetersPerSecond)
+        //                     * ExponentialConvert(getSimForwardInput(), exponentVelocity));
+        //             double robotRotate = robotRotateSlewFilter.calculate(
+        //                 Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
+        //                     * ExponentialConvert(getSimRotationInput(), exponentRotation));
+        //             return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
+        //         }
+        //     }));
+        configureManualDriveBindings();
+
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
@@ -561,7 +563,7 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
-        driver.povRight().onTrue(Commands.runOnce(() -> manualDriveCommand.toggleBrake()));
+        driver.povRight().toggleOnTrue(swerve.applyRequest(() -> new SwerveRequest.SwerveDriveBrake()));
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
