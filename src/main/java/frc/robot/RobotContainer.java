@@ -102,6 +102,7 @@ public class RobotContainer {
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
     private boolean simRobotCentricMode = false;
+    private boolean braking = false;
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
@@ -384,41 +385,8 @@ public class RobotContainer {
     }
 
     private void configureSimBindings() {
-        swerve.setDefaultCommand(
-            swerve.applyRequest(() -> {
-                if (!isSimControllerConnected() && !isDriverControllerConnected()) {
-                    return fieldCentricDrive.withVelocityX(0.0).withVelocityY(0.0).withRotationalRate(0.0);
-                }
+        configureManualDriveBindings();
 
-                double exponentVelocity =
-                    Constants.SimConstants.controllerVelocityCurveExponent;
-                double exponentRotation =
-                    Constants.SimConstants.controllerRotationCurveExponent;
-
-                if (!simRobotCentricMode) {
-                    double fieldX = fieldXSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
-                    double fieldY = fieldYSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
-                    double fieldRotate = fieldRotateSlewFilter.calculate(
-                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
-                    return fieldCentricDrive.withVelocityX(fieldX).withVelocityY(fieldY).withRotationalRate(fieldRotate);
-                } else {
-                    double robotX = robotXSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimLeftInput(), exponentVelocity));
-                    double robotY = robotYSlewFilter.calculate(
-                        Constants.Driving.kMaxSpeed.in(MetersPerSecond)
-                            * ExponentialConvert(getSimForwardInput(), exponentVelocity));
-                    double robotRotate = robotRotateSlewFilter.calculate(
-                        Constants.Driving.kMaxRotationalRate.in(RadiansPerSecond)
-                            * ExponentialConvert(getSimRotationInput(), exponentRotation));
-                    return robotCentricDrive.withVelocityX(robotX).withVelocityY(robotY).withRotationalRate(robotRotate);
-                }
-            }));
         // Mirror driver-facing bindings on the sim joystick so the same features exist in sim.
         simButton(Constants.SimControllerButtons.kAutoAim)
             .or(driverRightStickButton())
@@ -447,9 +415,9 @@ public class RobotContainer {
         simButton(Constants.SimControllerButtons.kHangerUp)
             .or(driverPovLeft())
             .onTrue(hanger.positionCommand(Hanger.Position.HANGER_EXTEND));
-        simButton(Constants.SimControllerButtons.kHangerDown)
-            .or(driverPovRight())
-            .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
+        // simButton(Constants.SimControllerButtons.kHangerDown)
+        //     .or(driverPovRight())
+        //     .onTrue(hanger.positionCommand(Hanger.Position.HANGER_HOME));
         simButton(Constants.SimControllerButtons.kHoodForward)
             .or(driver.y())
             .onTrue(hood.positionCommand(0.75));
@@ -561,6 +529,13 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
+
+        Command brakeCommand = swerve.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())
+            .beforeStarting(() -> braking = true)
+            .finallyDo((interrupted) -> braking = false);
+
+        driver.povRight().toggleOnTrue(brakeCommand);
+        
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
@@ -581,6 +556,10 @@ public class RobotContainer {
 
     public void logSwerveStickyFaults() {
         swerve.logStickyFaults();
+    }
+
+    public boolean getBraking() {
+        return braking;
     }
 
     public void autonomousInit() {

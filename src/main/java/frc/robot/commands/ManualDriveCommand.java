@@ -148,15 +148,17 @@ public class ManualDriveCommand extends Command {
             previousInput = input;
             return;
         }
+
+        currentState = State.IDLING;
         if (input.hasRotation()) {
-            currentState = State.DRIVING_WITH_MANUAL_ROTATION;
+        currentState = State.DRIVING_WITH_MANUAL_ROTATION;
         } else if (input.hasTranslation()) {
             currentState = lockedHeading.isPresent() ? State.DRIVING_WITH_LOCKED_HEADING : State.DRIVING_WITH_MANUAL_ROTATION;
         } else if (previousInput.hasRotation() || previousInput.hasTranslation()) {
             currentState = State.IDLING;
         }
+        
         previousInput = input;
-
         switch (currentState) {
             case IDLING:
                 swerve.setControl(idleRequest);
