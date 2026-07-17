@@ -102,6 +102,7 @@ public class RobotContainer {
     private final SlewRateLimiter robotYSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewTranslateLimit.in(MetersPerSecondPerSecond));
     private final SlewRateLimiter robotRotateSlewFilter = new SlewRateLimiter(Constants.SlewLimits.slewRotateLimit.in(RadiansPerSecondPerSecond));
     private boolean simRobotCentricMode = false;
+    private boolean braking = false;
 
     private final SubsystemCommands subsystemCommands = new SubsystemCommands(
         swerve,
@@ -528,7 +529,13 @@ public class RobotContainer {
         );
         swerve.setDefaultCommand(manualDriveCommand);
         driver.back().onTrue(Commands.runOnce(() -> manualDriveCommand.seedFieldCentric()));
-        driver.povRight().toggleOnTrue(swerve.applyRequest(() -> new SwerveRequest.SwerveDriveBrake()));
+
+        Command brakeCommand = swerve.applyRequest(() -> new SwerveRequest.SwerveDriveBrake())
+            .beforeStarting(() -> braking = true)
+            .finallyDo((interrupted) -> braking = false);
+
+        driver.povRight().toggleOnTrue(brakeCommand);
+        
     }
 
     public static double ExponentialConvert(double controllerValue, double exponent) {
@@ -549,6 +556,10 @@ public class RobotContainer {
 
     public void logSwerveStickyFaults() {
         swerve.logStickyFaults();
+    }
+
+    public boolean getBraking() {
+        return braking;
     }
 
     public void autonomousInit() {

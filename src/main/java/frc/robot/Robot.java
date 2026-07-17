@@ -74,6 +74,8 @@ public class Robot extends LoggedRobot {
         // block in order for anything in the Command-based framework to work.
         CommandScheduler.getInstance().run();
         logPowerDistribution();
+
+        Logger.recordOutput("Drive/WheelsLocked", m_robotContainer.getBraking());
     }
 
     private void logPowerDistribution() {
