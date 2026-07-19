@@ -58,7 +58,7 @@ public class Intake extends SubsystemBase {
         HOMED(110),
         STOWED(32),
         INTAKE(108), // red = 108, blue = 105.5
-        AGITATE(60);
+        AGITATE(80);
 
         private final double degrees;
 
