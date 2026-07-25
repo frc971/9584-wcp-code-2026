@@ -40,8 +40,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         DEFAULT(0),
-        INTAKE(0.9),
-        OUTTAKE(-0.9);
+        INTAKE(0.95),
+        OUTTAKE(-0.95);
 
         private final double percentOutput;
 
