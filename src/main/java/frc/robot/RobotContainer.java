@@ -363,7 +363,7 @@ public class RobotContainer {
         driverPovUp().onTrue(hanger.climbCommand());
         driverPovDown().onTrue(hanger.unclimbCommand());
         //driverPovLeft().whileTrue(subsystemCommands.autoAim());
-        driverPovRight().whileTrue(subsystemCommands.lockWheels());
+        driverRightStickButton().whileTrue(subsystemCommands.lockWheels());
 
         driverLeftStickButton().whileTrue(intake.outtakeCommand());
 
