@@ -40,8 +40,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         DEFAULT(0),
-        INTAKE(0.95),
-        OUTTAKE(-0.95);
+        INTAKE(0.98),
+        OUTTAKE(-0.98);
 
         private final double percentOutput;
 
@@ -222,7 +222,7 @@ public class Intake extends SubsystemBase {
 
     public Command agitateCommand() {
         return runOnce(() -> set(Speed.DEFAULT))
-            .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
+            .andThen(runOnce(() -> setPivotPercentOutput(0.3)))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
@@ -230,7 +230,7 @@ public class Intake extends SubsystemBase {
                     Commands.waitSeconds(0.3),
                     runOnce(() -> set(Position.INTAKE)),
                     //Commands.waitUntil(this::isPositionWithinTolerance),
-                    Commands.waitSeconds(1.0)
+                    Commands.waitSeconds(0.5)
                 )
                 .repeatedly()
             )

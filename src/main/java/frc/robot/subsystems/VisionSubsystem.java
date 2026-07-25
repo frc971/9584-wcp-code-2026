@@ -166,7 +166,10 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public boolean hasHighSingleTagAmbiguity(LimelightHelpers.PoseEstimate estimate) {
-        if (estimate == null || estimate.tagCount != 1 || estimate.rawFiducials == null
+        if (estimate == null) {
+            return true;
+        }
+        if (estimate.tagCount > 1 || estimate.rawFiducials == null
             || estimate.rawFiducials.length == 0) {
             return false;
         }
