@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(105.5), // red = 108, blue = 105.5
+        INTAKE(108), // red = 108, blue = 105.5
         AGITATE(80);
 
         private final double degrees;
@@ -113,9 +113,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(30))
+                    .withStatorCurrentLimit(Amps.of(35))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(15))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withFeedback(
@@ -147,9 +147,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(30))
+                    .withStatorCurrentLimit(Amps.of(35))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(15))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -222,7 +222,7 @@ public class Intake extends SubsystemBase {
 
     public Command agitateCommand() {
         return runOnce(() -> set(Speed.DEFAULT))
-            .andThen(runOnce(() -> setPivotPercentOutput(0.1)))
+            .andThen(runOnce(() -> setPivotPercentOutput(0.2)))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
@@ -230,7 +230,7 @@ public class Intake extends SubsystemBase {
                     Commands.waitSeconds(0.3),
                     runOnce(() -> set(Position.INTAKE)),
                     //Commands.waitUntil(this::isPositionWithinTolerance),
-                    Commands.waitSeconds(0.5)
+                    Commands.waitSeconds(0.3)
                 )
                 .repeatedly()
             )

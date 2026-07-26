@@ -303,9 +303,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 visionLatencies[i] = est.latency;
                 
                 if (omega < 3.0 || est.tagCount > 1) {
-                     if (!vision.hasHighSingleTagAmbiguity(est)) {
+                   //  if (!vision.hasHighSingleTagAmbiguity(est)) {
                          addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
-                    }
+                  //  }
                 }
              }
 
