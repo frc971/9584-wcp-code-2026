@@ -40,8 +40,8 @@ import frc.robot.sim.SimDeviceRegistrar;
 public class Intake extends SubsystemBase {
     public enum Speed {
         DEFAULT(0),
-        INTAKE(0.98),
-        OUTTAKE(-0.98);
+        INTAKE(0.9),
+        OUTTAKE(-0.9);
 
         private final double percentOutput;
 
@@ -57,7 +57,7 @@ public class Intake extends SubsystemBase {
     public enum Position {
         HOMED(110),
         STOWED(32),
-        INTAKE(108), // red = 108, blue = 105.5
+        INTAKE(105.5), // red = 108, blue = 105.5
         AGITATE(80);
 
         private final double degrees;
@@ -113,9 +113,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(30))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(20))
+                    .withSupplyCurrentLimit(Amps.of(15))
                     .withSupplyCurrentLimitEnable(true)
             )
             .withFeedback(
@@ -147,9 +147,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(50))
+                    .withStatorCurrentLimit(Amps.of(30))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withSupplyCurrentLimit(Amps.of(15))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -222,7 +222,7 @@ public class Intake extends SubsystemBase {
 
     public Command agitateCommand() {
         return runOnce(() -> set(Speed.DEFAULT))
-            .andThen(runOnce(() -> setPivotPercentOutput(0.3)))
+            .andThen(runOnce(() -> setPivotPercentOutput(0.1)))
             .andThen(
                 Commands.sequence(
                     runOnce(() -> set(Position.AGITATE)),
