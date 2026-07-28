@@ -62,6 +62,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private boolean m_hasAppliedOperatorPerspective = false;
     private NeutralModeValue currentDriveNeutralMode = null;
     private NeutralModeValue currentSteerNeutralMode = null;
+    private final SwerveRequest.SwerveDriveBrake lockWheelsRequest = new SwerveRequest.SwerveDriveBrake();
 
     private VisionSubsystem vision;
     //uses this to be able to lock angle of drivetrain a certain way
@@ -301,11 +302,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 visionAvgTagDists[i] = est.avgTagDist;
                 visionLatencies[i] = est.latency;
                 
-                  //if (omega < 3.0 || est.tagCount > 1) {
-                     //if (!vision.hasHighSingleTagAmbiguity(est)) {
+                if (omega < 3.0 || est.tagCount > 1) {
+                   //  if (!vision.hasHighSingleTagAmbiguity(est)) {
                          addVisionMeasurement(est.pose, est.timestampSeconds, stdDevs);
-                    //}
-                //}
+                  //  }
+                }
              }
 
             Logger.recordOutput("Vision/Poses", visionPoses);
@@ -429,6 +430,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     Pose2d initialSimPose = new Pose2d(blueAllianceInitialSimX, blueAllianceInitialSimY, new Rotation2d(3.121));
     mapleSimSwerveDrivetrain.mapleSimDrive.setSimulationWorldPose(initialSimPose);
     super.resetPose(initialSimPose);
+    }
+
+
+    public Command lockWheelsCommand() {
+        return run(() -> setControl(lockWheelsRequest));
     }
 
     @Override

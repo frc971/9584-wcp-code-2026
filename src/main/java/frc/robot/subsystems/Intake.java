@@ -58,7 +58,7 @@ public class Intake extends SubsystemBase {
         HOMED(110),
         STOWED(32),
         INTAKE(108), // red = 108, blue = 105.5
-        AGITATE(60);
+        AGITATE(80);
 
         private final double degrees;
 
@@ -113,7 +113,7 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(40))
+                    .withStatorCurrentLimit(Amps.of(35))
                     .withStatorCurrentLimitEnable(true)
                     .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
@@ -147,9 +147,9 @@ public class Intake extends SubsystemBase {
             )
             .withCurrentLimits(
                 new CurrentLimitsConfigs()
-                    .withStatorCurrentLimit(Amps.of(50))
+                    .withStatorCurrentLimit(Amps.of(35))
                     .withStatorCurrentLimitEnable(true)
-                    .withSupplyCurrentLimit(Amps.of(40))
+                    .withSupplyCurrentLimit(Amps.of(20))
                     .withSupplyCurrentLimitEnable(true)
             );
         rollerMotor.getConfigurator().apply(config);
@@ -230,7 +230,7 @@ public class Intake extends SubsystemBase {
                     Commands.waitSeconds(0.3),
                     runOnce(() -> set(Position.INTAKE)),
                     //Commands.waitUntil(this::isPositionWithinTolerance),
-                    Commands.waitSeconds(1.0)
+                    Commands.waitSeconds(0.3)
                 )
                 .repeatedly()
             )

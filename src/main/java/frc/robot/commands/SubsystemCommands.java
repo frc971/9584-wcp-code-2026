@@ -93,6 +93,11 @@ public final class SubsystemCommands {
         return new AimAndDriveCommand(swerve, forwardInput, leftInput);
     }
 
+    public Command lockWheels() {
+        System.out.println("======== Lock Wheels =======");
+        return swerve.lockWheelsCommand();
+    }
+
     // public Command outtake() {
     //     System.out.println("===Outtake Command");
     //     return Commands.parallel(
