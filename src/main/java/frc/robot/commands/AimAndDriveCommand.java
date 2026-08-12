@@ -39,14 +39,14 @@ public class AimAndDriveCommand extends Command {
     private boolean poseWarningIssued = false;
     private double lastDebugPrintTimestamp = 0.0;
 
-    private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
-    private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
+    // private static final Translation2d kDefaultBlueHubPosition = new Translation2d(Inches.of(182.105), Inches.of(158.845));
+    // private static final Translation2d kDefaultRedHubPosition = new Translation2d(Inches.of(469.115), Inches.of(158.845));
 
-    public static final AprilTagFieldLayout layout =
-        AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
+    // public static final AprilTagFieldLayout layout =
+    //     AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltWelded);
 
-    public static final double fieldLength = layout.getFieldLength();
-    public static final double fieldWidth = layout.getFieldWidth();
+    // public static final double fieldLength = layout.getFieldLength();
+    // public static final double fieldWidth = layout.getFieldWidth();
 
     private final SwerveRequest.FieldCentricFacingAngle fieldCentricFacingAngleRequest = new SwerveRequest.FieldCentricFacingAngle()
         .withRotationalDeadband(Driving.kPIDRotationDeadband)
@@ -86,7 +86,8 @@ public class AimAndDriveCommand extends Command {
 
     private Rotation2d getTargetHeadingInFieldFrame() {
         final Translation2d robotPosition = swerve.getState().Pose.getTranslation();
-        final Translation2d hubPosition = DriverStation.getAlliance().get().equals(Alliance.Blue) ? kDefaultBlueHubPosition : kDefaultRedHubPosition;;
+        //final Translation2d hubPosition = DriverStation.getAlliance().get().equals(Alliance.Blue) ? kDefaultBlueHubPosition : kDefaultRedHubPosition;;
+        final Translation2d hubPosition = Landmarks.hubPosition();
         return hubPosition.minus(robotPosition).getAngle();
     }
 
@@ -101,9 +102,9 @@ public class AimAndDriveCommand extends Command {
             return false;
         }
         return x >= -kPoseEdgeMarginMeters
-            && x <= fieldLength + kPoseEdgeMarginMeters
+            && x <= Landmarks.fieldLength + kPoseEdgeMarginMeters
             && y >= -kPoseEdgeMarginMeters
-            && y <= fieldWidth + kPoseEdgeMarginMeters;
+            && y <= Landmarks.fieldWidth + kPoseEdgeMarginMeters;
     }
 
     private boolean currentPoseIsValid() {

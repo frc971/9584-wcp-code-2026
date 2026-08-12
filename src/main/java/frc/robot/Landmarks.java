@@ -21,6 +21,10 @@ public class Landmarks {
 
     private static Alliance cachedAlliance = null;
 
+    // IMPORTANT: DO NOT DELETE OR EXPENSIVE FILE READING WILL FREEZE WHEN FIRST LANDMARKS FUNCTION
+    // IS CALLED
+    public static final void init() {}
+
     /**
      * Returns the cached alliance, polling DriverStation until it becomes available.
      * Once set, the alliance is locked for the rest of the match.
